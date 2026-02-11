@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import SessionControl from "./SessionControl";
 import ProtectedRoute from "./ProtectedRoute";
 import LogIn from "./LogIn";
 import Tasks from "./AddOrder";
@@ -10,18 +9,18 @@ import AddOrder from "./AddOrder";
 function App() {
   return (
     <Routes>
+      <Route path="/login" element={<LogIn />} />
+
       <Route element={<Layout />}>
-        <Route path="/" element={<Orders />} />
-        <Route path="/login" element={<LogIn />} />
-        <Route path="/addOrder" element={<AddOrder />} />
         <Route
-          path="/dashboard"
+          path="/"
           element={
             <ProtectedRoute>
-              <Tasks />
+              <Orders />
             </ProtectedRoute>
           }
         />
+        <Route path="/addOrder" element={<AddOrder />} />
       </Route>
     </Routes>
   );

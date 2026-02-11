@@ -1,5 +1,6 @@
 import { useState } from "react";
 import supabase from "./supabase";
+import { useNavigate } from "react-router-dom";
 
 const LogIn = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -8,7 +9,7 @@ const LogIn = () => {
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -29,6 +30,9 @@ const LogIn = () => {
       email: formData.email,
       password: formData.password,
     });
+    if (data) {
+      navigate("/");
+    }
     console.log(data);
   };
   const handleSubmit = (e) => {
@@ -58,6 +62,7 @@ const LogIn = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              dir="ltr"
               placeholder="you@example.com"
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
             />
@@ -71,6 +76,7 @@ const LogIn = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
+                dir="ltr"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -102,7 +108,7 @@ const LogIn = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-blue-600 font-medium hover:underline ml-1"
           >
-            {isLogin ? "Sign Up" : "Login"}
+            {isLogin ? "ایجاد حساب کاربری" : "ورود کاربران"}
           </button>
         </p>
       </div>

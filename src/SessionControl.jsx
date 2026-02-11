@@ -12,7 +12,6 @@ const SessionControl = () => {
   };
   useEffect(() => {
     checkSession();
-
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
