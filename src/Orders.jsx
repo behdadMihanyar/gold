@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import supabase from "./supabase";
+import { Calendar } from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
+import { ToastContainer, toast } from "react-toastify";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [calendarVisible, setCalendarVisible] = useState(false);
+
   const [editFormData, setEditFormData] = useState({
     name: "",
     quantity: "",
@@ -30,6 +36,7 @@ const OrderList = () => {
         .order("date", { ascending: false });
 
       if (error) throw error;
+
       setOrders(data || []);
     } catch (err) {
       setError(err.message);
@@ -48,7 +55,7 @@ const OrderList = () => {
       date: order.date,
       total: order.total,
       delivery: order.delivery || "",
-      status: order.status || "",
+      status: order.status || "در انتظار",
     });
   };
 
@@ -58,6 +65,7 @@ const OrderList = () => {
     if (name === "price") {
       const numericValue = value.replace(/\D/g, "");
       const formattedPrice = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "/");
+
       const quantity = editFormData.quantity;
       const price = numericValue;
 
@@ -80,10 +88,24 @@ const OrderList = () => {
     }
   };
 
+  const handleDateChange = (date) => {
+    console.log(date);
+    setEditFormData({
+      ...editFormData,
+      date: date.format("YYYY/MM/DD", { calendar: persian }),
+    });
+    setCalendarVisible(false);
+  };
+
   const handleUpdate = async (id) => {
+    const updatedData = {
+      ...editFormData,
+      date: editFormData.date,
+    };
+
     const { error } = await supabase
       .from("tasks")
-      .update(editFormData)
+      .update(updatedData)
       .eq("id", id);
 
     if (error) {
@@ -91,16 +113,24 @@ const OrderList = () => {
     } else {
       setOrders(
         orders.map((order) =>
-          order.id === id ? { ...order, ...editFormData } : order
+          order.id === id ? { ...order, ...updatedData } : order
         )
       );
+
       setEditingId(null);
-      alert("Order updated successfully!");
+      toast.success("سفارشات با موفقیت بروزرسانی شد", {
+        position: "top-left",
+        style: {
+          fontSize: "18px",
+        },
+      });
     }
   };
 
   const handleCancel = () => {
     setEditingId(null);
+    setCalendarVisible(false);
+
     setEditFormData({
       name: "",
       quantity: "",
@@ -121,7 +151,12 @@ const OrderList = () => {
         alert("Error deleting order: " + error.message);
       } else {
         setOrders(orders.filter((order) => order.id !== id));
-        alert("Order deleted successfully!");
+        toast.success("سفارش با موفقیت حذف شد", {
+          position: "top-left",
+          style: {
+            fontSize: "18px",
+          },
+        });
       }
     }
   };
@@ -159,213 +194,162 @@ const OrderList = () => {
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      نام
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      تعداد
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      نرخ
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      جمع کل
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      تاریخ
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      تحویل دهنده
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      توضیحات
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      وضعیت
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">
-                      عملیات
-                    </th>
+                    <th className="px-6 py-4 text-center">نام</th>
+                    <th className="px-6 py-4 text-center">تعداد</th>
+                    <th className="px-6 py-4 text-center">نرخ</th>
+                    <th className="px-6 py-4 text-center">جمع کل</th>
+                    <th className="px-6 py-4 text-center">تاریخ</th>
+                    <th className="px-6 py-4 text-center">تحویل دهنده</th>
+                    <th className="px-6 py-4 text-center">توضیحات</th>
+                    <th className="px-6 py-4 text-center">وضعیت</th>
+                    <th className="px-6 py-4 text-center">عملیات</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-gray-200">
                   {orders.map((order, index) => (
                     <tr
                       key={order.id}
                       className={`${
                         index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-blue-50 transition-colors duration-200`}
+                      } hover:bg-blue-50 transition`}
                     >
                       {editingId === order.id ? (
                         <>
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
                               name="name"
                               value={editFormData.name}
                               onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              className="w-full border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
                               name="quantity"
                               value={editFormData.quantity}
                               onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              className="w-full border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
                               name="price"
                               value={editFormData.price}
                               onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              className="w-full border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
-                              name="total"
                               value={editFormData.total}
                               readOnly
-                              className="w-full px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm text-center cursor-not-allowed"
+                              className="w-full bg-gray-100 border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
-                            <input
-                              type="date"
-                              name="date"
-                              value={editFormData.date}
-                              onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
-                            />
+                            <div
+                              onClick={() =>
+                                setCalendarVisible(!calendarVisible)
+                              }
+                              className="cursor-pointer"
+                            >
+                              {editFormData.date
+                                ? editFormData.date
+                                : order.date}
+                            </div>
+
+                            {calendarVisible && (
+                              <Calendar
+                                calendar={persian}
+                                locale={persian_fa}
+                                value={editFormData.date}
+                                onChange={handleDateChange}
+                              />
+                            )}
                           </td>
+
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
                               name="delivery"
                               value={editFormData.delivery}
                               onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              className="w-full border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
                             <input
-                              type="text"
                               name="description"
                               value={editFormData.description}
                               onChange={handleEditChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                              className="w-full border rounded px-2 py-1 text-sm text-center"
                             />
                           </td>
+
                           <td className="px-6 py-4 text-center">
-                            <select name="status" onChange={handleEditChange}>
+                            <select
+                              name="status"
+                              value={editFormData.status}
+                              onChange={handleEditChange}
+                              className="border rounded px-2 py-1 text-sm"
+                            >
                               <option value="در انتظار">در انتظار</option>
                               <option value="در حال ارسال">در حال ارسال</option>
                               <option value="تحویل شده">تحویل شده</option>
                             </select>
                           </td>
+
                           <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleUpdate(order.id)}
-                                className="text-green-500 hover:text-green-700 transition-colors inline-flex items-center justify-center p-2 rounded-lg hover:bg-green-50"
-                                title="Save"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={handleCancel}
-                                className="text-gray-500 hover:text-gray-700 transition-colors inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-200"
-                                title="Cancel"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => handleUpdate(order.id)}
+                              className="text-green-600 font-semibold"
+                            >
+                              ذخیره
+                            </button>
                           </td>
                         </>
                       ) : (
                         <>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm font-medium text-gray-900">
-                              {order.name}
-                            </div>
+                            {order.name}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {order.quantity}
-                            </div>
+                            {order.quantity}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {order.price}
-                            </div>
+                            {order.price}
+                          </td>
+                          <td className="px-6 py-4 text-center text-blue-600 font-semibold">
+                            {order.total}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm font-semibold text-blue-600">
-                              {order.total}
-                            </div>
+                            {order.date}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {new Date(order.date).toLocaleDateString()}
-                            </div>
+                            {order.delivery || "-"}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {order.delivery || "-"}
-                            </div>
+                            {order.description || "-"}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {order.description || "-"}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="text-sm text-gray-900">
-                              {order.status || "-"}
-                            </div>
+                            {order.status || "-"}
                           </td>
 
                           <td className="px-6 py-4 text-center">
                             <div className="flex items-center justify-center gap-2">
+                              {/* Edit Button */}
                               <button
                                 onClick={() => handleEdit(order)}
-                                className="text-blue-500 hover:text-blue-700 transition-colors inline-flex items-center justify-center p-2 rounded-lg hover:bg-blue-50"
-                                title="Edit"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5"
+                                  className="w-4 h-4"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -377,15 +361,17 @@ const OrderList = () => {
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                   />
                                 </svg>
+                                ویرایش
                               </button>
+
+                              {/* Delete Button */}
                               <button
                                 onClick={() => handleDelete(order.id)}
-                                className="text-red-500 hover:text-red-700 transition-colors inline-flex items-center justify-center p-2 rounded-lg hover:bg-red-50"
-                                title="Delete"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5"
+                                  className="w-4 h-4"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -397,6 +383,7 @@ const OrderList = () => {
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                   />
                                 </svg>
+                                حذف
                               </button>
                             </div>
                           </td>
@@ -410,6 +397,7 @@ const OrderList = () => {
           </div>
         )}
       </div>
+      <ToastContainer />
     </div>
   );
 };

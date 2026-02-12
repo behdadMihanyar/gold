@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import supabase from "./supabase";
+import { Calendar } from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
+import { ToastContainer, toast } from "react-toastify";
 
 const AddOrder = () => {
   const [formData, setFormData] = useState({
@@ -12,14 +16,13 @@ const AddOrder = () => {
     delivery: "",
   });
 
+  const [calendarVisible, setCalendarVisible] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Format price with thousand separators
     if (name === "price") {
-      // Remove all non-digit characters
       const numericValue = value.replace(/\D/g, "");
-      // Format with thousand separators
       const formattedPrice = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "/");
 
       const quantity = formData.quantity;
@@ -32,7 +35,7 @@ const AddOrder = () => {
       });
     } else if (name === "quantity") {
       const quantity = value;
-      const price = formData.price.replace(/\D/g, ""); // Remove slashes for calculation
+      const price = formData.price.replace(/\D/g, "");
 
       setFormData({
         ...formData,
@@ -44,6 +47,15 @@ const AddOrder = () => {
     }
   };
 
+  const handleDateChange = (date) => {
+    console.log(date);
+    setFormData({
+      ...formData,
+      date: date.format("YYYY/MM/DD", { calendar: persian }),
+    });
+    setCalendarVisible(false);
+  };
+  console.log(formData.date);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { error } = await supabase.from("tasks").insert(formData);
@@ -59,7 +71,12 @@ const AddOrder = () => {
         total: "",
         delivery: "",
       });
-      alert("Order submitted successfully!");
+      toast.success("سفارش با موفقیت ثبت شد", {
+        position: "top-left",
+        style: {
+          fontSize: "18px",
+        },
+      });
     }
   };
 
@@ -73,7 +90,6 @@ const AddOrder = () => {
           ثبت سفارش جدید
         </h2>
 
-        {/* Name */}
         <div className="relative w-full group">
           <input
             type="text"
@@ -89,7 +105,6 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Quantity */}
         <div className="relative w-full group">
           <input
             type="text"
@@ -105,7 +120,6 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Price */}
         <div className="relative w-full group">
           <input
             type="text"
@@ -121,7 +135,6 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Total */}
         <div className="relative w-full group">
           <input
             type="text"
@@ -136,23 +149,31 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Date */}
         <div className="relative w-full group">
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="block py-2.5 px-0 w-full text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-500 peer"
-            placeholder=" "
-            required
-          />
+          <div
+            onClick={() => setCalendarVisible(!calendarVisible)}
+            className="cursor-pointer py-2.5 px-0 w-full text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-500"
+          >
+            {/*  */}
+            {formData.date
+              ? formData.date
+              : formData.date.format("YYYY/MM/DD", { calendar: persian })}
+          </div>
           <label className="absolute text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none">
             تاریخ
           </label>
+
+          {calendarVisible && (
+            <Calendar
+              name="date"
+              calendar={persian}
+              locale={persian_fa}
+              value={formData.date}
+              onChange={handleDateChange}
+            />
+          )}
         </div>
 
-        {/* Delivery */}
         <div className="relative w-full group">
           <input
             type="text"
@@ -167,7 +188,6 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Description - full width */}
         <div className="relative w-full group col-span-full">
           <textarea
             name="description"
@@ -182,7 +202,6 @@ const AddOrder = () => {
           </label>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           className="col-span-full w-full py-3 bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition duration-300"
@@ -190,6 +209,7 @@ const AddOrder = () => {
           ثبت سفارش
         </button>
       </form>
+      <ToastContainer />
     </div>
   );
 };
