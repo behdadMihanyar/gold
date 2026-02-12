@@ -4,7 +4,7 @@ import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { ToastContainer, toast } from "react-toastify";
-
+import gold from "./img/gold.png";
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +164,7 @@ const OrderList = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-2xl text-gray-600">Loading orders...</div>
+        <div className="text-2xl text-gray-600">بارگذاری ...</div>
       </div>
     );
   }
@@ -180,9 +180,12 @@ const OrderList = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
-          لیست سفارشات
-        </h2>
+        <div className="flex justify-center flex-col items-center ">
+          <img src={gold} alt="gold" width={125} height={125} />
+          <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center text-shadow-lg ">
+            - لیست سفارشات -
+          </h2>
+        </div>
 
         {orders.length === 0 ? (
           <div className="bg-white shadow-xl rounded-2xl p-12 text-center">
@@ -192,21 +195,29 @@ const OrderList = () => {
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <thead className="bg-gradient-to-r from-yellow-500 txt-xs to-orange-500 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-center">نام</th>
-                    <th className="px-6 py-4 text-center">تعداد</th>
-                    <th className="px-6 py-4 text-center">نرخ</th>
-                    <th className="px-6 py-4 text-center">جمع کل</th>
-                    <th className="px-6 py-4 text-center">تاریخ</th>
-                    <th className="px-6 py-4 text-center">تحویل دهنده</th>
-                    <th className="px-6 py-4 text-center">توضیحات</th>
-                    <th className="px-6 py-4 text-center">وضعیت</th>
-                    <th className="px-6 py-4 text-center">عملیات</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">نام</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">تعداد</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">نرخ</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">
+                      جمع کل
+                    </th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">تاریخ</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">
+                      تحویل دهنده
+                    </th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">
+                      توضیحات
+                    </th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">وضعیت</th>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">
+                      عملیات
+                    </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 max-sm:text-sm">
                   {orders.map((order, index) => (
                     <tr
                       key={order.id}

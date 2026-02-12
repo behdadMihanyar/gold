@@ -81,15 +81,14 @@ const AddOrder = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 max-sm:-mt-5">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="bg-white  shadow-xl rounded-2xl p-5 w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        <h2 className="text-3xl font-bold text-gray-800 col-span-full mb-6 text-center">
-          ثبت سفارش جدید
+        <h2 className="text-3xl font-bold text-gray-800 col-span-full text-center">
+          ثبت سفارش
         </h2>
-
         <div className="relative w-full group">
           <input
             type="text"
@@ -152,7 +151,7 @@ const AddOrder = () => {
         <div className="relative w-full group">
           <div
             onClick={() => setCalendarVisible(!calendarVisible)}
-            className="cursor-pointer py-2.5 px-0 w-full text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-500"
+            className="cursor-pointer py-2.5 px-0 w-full text-gray-500 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-500"
           >
             {/*  */}
             {formData.date
@@ -195,7 +194,7 @@ const AddOrder = () => {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows="4"
+            rows="2"
             className="block py-2.5 px-0 w-full text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-500 peer resize-none"
             placeholder=" "
           ></textarea>
@@ -206,7 +205,7 @@ const AddOrder = () => {
 
         <button
           type="submit"
-          className="col-span-full w-full py-3 bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition duration-300"
+          className="col-span-full w-full py-3 bg-indigo-500 shadow-lg hover:ring-2 ring-blue-500 shadow-indigo-500/50 hover:cursor-pointer text-white font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition duration-300"
         >
           ثبت سفارش
         </button>
