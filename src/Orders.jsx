@@ -5,13 +5,14 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { ToastContainer, toast } from "react-toastify";
 import gold from "./img/gold.png";
+import { useDataContext } from "./Context/DataContext";
+import OrdersMobile from "./OrdersMobile";
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [calendarVisible, setCalendarVisible] = useState(false);
-
   const [editFormData, setEditFormData] = useState({
     name: "",
     quantity: "",
@@ -22,6 +23,7 @@ const OrderList = () => {
     delivery: "",
     status: "",
   });
+  const { isMobile, setIsMobile } = useDataContext();
 
   useEffect(() => {
     fetchOrders();
@@ -163,26 +165,30 @@ const OrderList = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-2xl text-gray-600">بارگذاری ...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-2xl text-white">بارگذاری ...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-2xl text-red-600">Error: {error}</div>
       </div>
     );
   }
 
+  if (isMobile) {
+    return <OrdersMobile />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen p-4 max-sm:p-0">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-center flex-col items-center ">
           <img src={gold} alt="gold" width={125} height={125} />
-          <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center text-shadow-lg ">
+          <h2 className="text- font-bold text-gray-800 mb-8 text-center text-shadow-lg ">
             - لیست سفارشات -
           </h2>
         </div>
@@ -326,32 +332,32 @@ const OrderList = () => {
                         </>
                       ) : (
                         <>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.name}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.quantity}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.price}
                           </td>
-                          <td className="px-6 py-4 text-center text-blue-600 font-semibold">
+                          <td className="px-6 py-4 text-center max-sm:p-3 text-blue-600 font-semibold">
                             {order.total}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.date}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.delivery || "-"}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.description || "-"}
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.status || "-"}
                           </td>
 
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             <div className="flex items-center justify-center gap-2">
                               {/* Edit Button */}
                               <button

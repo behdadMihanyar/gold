@@ -81,7 +81,7 @@ const AddOrder = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 max-sm:-mt-5">
+    <div className="flex items-center justify-center min-h-screen max-sm:-mt-5">
       <form
         onSubmit={handleSubmit}
         className="bg-white  shadow-xl rounded-2xl p-5 w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6"
