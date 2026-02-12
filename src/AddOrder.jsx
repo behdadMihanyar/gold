@@ -157,7 +157,9 @@ const AddOrder = () => {
             {/*  */}
             {formData.date
               ? formData.date
-              : formData.date.format("YYYY/MM/DD", { calendar: persian })}
+              : formData.date
+              ? formData.date
+              : "تاریخ را انتخاب کنید"}
           </div>
           <label className="absolute text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none">
             تاریخ
