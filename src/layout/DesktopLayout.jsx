@@ -2,10 +2,12 @@ import React from "react";
 import logout from "../img/logout.png";
 import logo from "../img/logo.png";
 import supabase from "../supabase";
-import { Outlet, NavLink } from "react-router-dom";
-const Desktop = () => {
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+const DesktopLayout = () => {
+  const navigate = useNavigate();
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    navigate("/");
   };
   return (
     <div>
@@ -75,4 +77,4 @@ const Desktop = () => {
   );
 };
 
-export default Desktop;
+export default DesktopLayout;

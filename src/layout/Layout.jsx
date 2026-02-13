@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useDataContext } from "../Context/DataContext";
 import MobileLayout from "./MobileLayout";
-import Desktop from "./Desktop";
+import DesktopLayout from "./DesktopLayout";
 function Layout() {
   const [show, setShow] = useState(false);
   const { isMobile, setIsMobile } = useDataContext();
@@ -12,7 +12,7 @@ function Layout() {
     return <MobileLayout show={show} setShow={setShow} />;
   }
   // ================= DESKTOP =================
-  return <Desktop />;
+  return <DesktopLayout />;
 }
 
 export default Layout;

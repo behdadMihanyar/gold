@@ -121,7 +121,7 @@ const AddOrder = () => {
 
         <div className="relative w-full group">
           <input
-            type="text"
+            type="number"
             name="price"
             value={formData.price}
             onChange={handleChange}

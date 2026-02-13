@@ -1,18 +1,20 @@
 import React from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import { FaGithub } from "react-icons/fa";
 import { IoArrowBack } from "react-icons/io5";
 import { GrPowerShutdown } from "react-icons/gr";
 import supabase from "../supabase";
 const MobileLayout = ({ show, setShow }) => {
+  const navigate = useNavigate();
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    navigate("/");
   };
   return (
     <div>
       <div>
-        <main className="flex-1 p-3 bg-linear-to-br from-blue-50 to-purple-50">
+        <main className="flex-1 p-3 bg-linear-to-br from-blue-50 to-purple-50 cursor-pointer">
           <button className="top-7 absolute" onClick={handleLogout}>
             <GrPowerShutdown color="black" size={30} />
           </button>

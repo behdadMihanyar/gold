@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import gold from "./img/gold.png";
 import { useDataContext } from "./Context/DataContext";
 import OrdersMobile from "./OrdersMobile";
+import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,29 +24,50 @@ const OrderList = () => {
     delivery: "",
     status: "",
   });
-  const { isMobile, setIsMobile } = useDataContext();
+  const { isMobile, setIsMobile, totalCount, setTotalCount, page, setPage } =
+    useDataContext();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  // const fetchOrders = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const { data, error } = await supabase
+  //       .from("tasks")
+  //       .select("*")
+  //       .order("date", { ascending: false });
 
+  //     if (error) throw error;
+
+  //     setOrders(data || []);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const PAGE_SIZE = 10;
   const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .order("date", { ascending: false });
+    setLoading(true);
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-      if (error) throw error;
+    const { data, count, error } = await supabase
+      .from("tasks")
+      .select("*", { count: "exact" })
+      .range(from, to);
 
+    if (error) {
+      throw error;
+    } else {
       setOrders(data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
+      setTotalCount(count);
       setLoading(false);
     }
   };
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [page]);
 
   const handleEdit = (order) => {
     setEditingId(order.id);
@@ -155,7 +177,6 @@ const OrderList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
-
       if (error) {
         alert("Error deleting order: " + error.message);
       } else {
@@ -441,6 +462,26 @@ const OrderList = () => {
             </div>
           </div>
         )}
+        <div className="mt-2 flex justify-center gap-3">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((prev) => prev - 1)}
+          >
+            <GrLinkNext />
+          </button>
+
+          <span>
+            {" "}
+            {page} از {totalPages}{" "}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((prev) => prev + 1)}
+          >
+            <GrLinkPrevious />
+          </button>
+        </div>
       </div>
       <ToastContainer />
     </div>

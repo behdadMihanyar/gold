@@ -3,6 +3,8 @@ const DataContext = createContext();
 
 export function DataProvider({ children }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 558);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -14,7 +16,16 @@ export function DataProvider({ children }) {
   }, []);
 
   return (
-    <DataContext.Provider value={{ isMobile, setIsMobile }}>
+    <DataContext.Provider
+      value={{
+        isMobile,
+        setIsMobile,
+        totalCount,
+        setTotalCount,
+        page,
+        setPage,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
