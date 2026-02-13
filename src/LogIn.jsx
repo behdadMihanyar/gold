@@ -4,6 +4,7 @@ import supabase from "./supabase";
 import { useNavigate } from "react-router-dom";
 import background_img from "./img/background_img.jpg";
 import logo from "./img/logo.png";
+import { toast } from "react-toastify";
 const LogIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +27,7 @@ const LogIn = () => {
     if (error) {
       console.log(error.message);
     }
+    toast.success("تاییدیه ایمیل برای شما ارسال شد");
   };
   const handleLogIn = async () => {
     const { error, data } = await supabase.auth.signInWithPassword({
