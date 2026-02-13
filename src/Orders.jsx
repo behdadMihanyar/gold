@@ -77,12 +77,15 @@ const OrderList = () => {
         total: quantity && price ? (quantity * price).toLocaleString() : "",
       });
     } else if (name === "quantity") {
+      const numericValue = value.replace(/\D/g, "");
+      const formattedPrice = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "/");
+
       const quantity = value;
       const price = editFormData.price.replace(/\D/g, "");
 
       setEditFormData({
         ...editFormData,
-        quantity: value,
+        quantity: formattedPrice,
         total: quantity && price ? (quantity * price).toLocaleString() : "",
       });
     } else {
@@ -100,6 +103,10 @@ const OrderList = () => {
   };
 
   const handleUpdate = async (id) => {
+    if (!editFormData.quantity) {
+      alert("لطفا مقادیر مورد نظر را وارد کنید");
+      return;
+    }
     const updatedData = {
       ...editFormData,
       date: editFormData.date,
@@ -315,18 +322,39 @@ const OrderList = () => {
                               onChange={handleEditChange}
                               className="border rounded px-2 py-1 text-sm"
                             >
-                              <option value="در انتظار">در انتظار</option>
-                              <option value="در حال ارسال">در حال ارسال</option>
+                              <option value="تسویه نشده">تسویه نشده</option>
+                              <option value="پرداخت شده">پرداخت شده</option>
                               <option value="تحویل شده">تحویل شده</option>
                             </select>
                           </td>
 
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-4 text-center flex justify-center">
                             <button
                               onClick={() => handleUpdate(order.id)}
-                              className="text-green-600 font-semibold"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
                             >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
                               ذخیره
+                            </button>
+
+                            <button
+                              onClick={() => handleCancel(order.id)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+                            >
+                              X بستن
                             </button>
                           </td>
                         </>

@@ -34,7 +34,11 @@ const LogIn = () => {
       email: formData.email,
       password: formData.password,
     });
+    if (error) {
+      alert(error.message);
+    }
     if (data) {
+      toast.success("خوش آمدید");
       navigate("/");
     }
     console.log(data);
