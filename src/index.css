@@ -2,5 +2,8 @@
 
 body {
   font-family: "Vazirmatn", sans-serif;
-  background-color: #eff6ff;
+  background-image: url("/src//img/background_img.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }

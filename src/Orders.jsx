@@ -341,7 +341,7 @@ const OrderList = () => {
                           <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.price}
                           </td>
-                          <td className="px-6 py-4 text-center max-sm:p-3 text-blue-600 font-semibold">
+                          <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.total}
                           </td>
                           <td className="px-6 py-4 text-center max-sm:p-3">

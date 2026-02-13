@@ -3,11 +3,15 @@ import { Outlet, NavLink } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import { FaGithub } from "react-icons/fa";
 import { IoArrowBack } from "react-icons/io5";
+import { GrPowerShutdown } from "react-icons/gr";
 const MobileLayout = ({ show, setShow }) => {
   return (
     <div>
       <div>
-        <main className="flex-1 p-3 bg-gradient-to-br from-blue-50 to-purple-50">
+        <main className="flex-1 p-3 bg-linear-to-br from-blue-50 to-purple-50">
+          <button className="top-7 absolute">
+            <GrPowerShutdown color="black" size={30} />
+          </button>
           <Outlet />
         </main>
         <div>
@@ -28,11 +32,6 @@ const MobileLayout = ({ show, setShow }) => {
             }`}
           >
             <ul className="flex flex-col items-center justify-center space-y-4 text-2xl text-white">
-              <li className="flex gap-2 mt-3">
-                <a href="https://github.com/behdadMihanyar">
-                  <FaGithub color="white  " size={40} />
-                </a>
-              </li>
               <li>
                 <NavLink to="/" onClick={() => setShow((prev) => !prev)}>
                   سفارشات

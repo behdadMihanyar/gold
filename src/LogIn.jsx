@@ -2,7 +2,7 @@
 import { useState } from "react";
 import supabase from "./supabase";
 import { useNavigate } from "react-router-dom";
-
+import background_img from "./img/background_img.jpg";
 const LogIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -46,8 +46,11 @@ const LogIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-800 px-4"
+      style={{ backgroundImage: `url(${background_img})` }}
+    >
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md shadow-xl/30 shadow-blue-700 ">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           {isLogin ? "ورود کاربران" : "ساخت حساب کاربری"}
         </h2>
@@ -65,7 +68,7 @@ const LogIn = () => {
               required
               dir="ltr"
               placeholder="you@example.com"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:scale-105 focus:ring-blue-500 focus:outline-none transition"
             />
           </div>
 
@@ -82,7 +85,7 @@ const LogIn = () => {
                 onChange={handleChange}
                 required
                 placeholder="••••••••"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full px-4 py-2 border focus:scale-105 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
               />
               <button
                 type="button"
@@ -96,7 +99,7 @@ const LogIn = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+            className="w-full bg-blue-600 cursor-pointer text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium"
           >
             {isLogin ? "ورود" : "ثبت نام"}
           </button>

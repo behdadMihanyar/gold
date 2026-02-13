@@ -31,7 +31,7 @@ const Desktop = () => {
               to="/addOrder"
               className={({ isActive }) =>
                 isActive
-                  ? "text-black no-underline font-bold border-r-4 border-amber-600 rounded-l-2xl p-1 mr-3 shadow-2xl shadow-black"
+                  ? "text-black no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
                   : "text-white no-underline hover:scale-108 duration-200 mr-3"
               }
             >
@@ -67,7 +67,7 @@ const Desktop = () => {
           </nav>
         </aside>
 
-        <main className="flex-1 p-8 bg-blue-50 overflow-y-auto">
+        <main className="flex-1 p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>
