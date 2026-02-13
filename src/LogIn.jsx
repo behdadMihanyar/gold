@@ -38,7 +38,6 @@ const LogIn = () => {
       alert(error.message);
     }
     if (data) {
-      toast.success("خوش آمدید");
       navigate("/");
     }
     console.log(data);
