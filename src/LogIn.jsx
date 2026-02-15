@@ -5,20 +5,36 @@ import { useNavigate } from "react-router-dom";
 import background_img from "./img/background_img.jpg";
 import logo from "./img/logo.png";
 import { toast } from "react-toastify";
+<<<<<<< HEAD
 const LogIn = () => {
+=======
+
+const LogIn = () => {
+  //States
+>>>>>>> 598674f (Buy_Feature)
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+
+  const navigate = useNavigate();
+  //Change Login/SignUp
+>>>>>>> 598674f (Buy_Feature)
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+<<<<<<< HEAD
+=======
+  //SignUp
+>>>>>>> 598674f (Buy_Feature)
   const handleSignUp = async () => {
     const { error } = await supabase.auth.signUp({
       email: formData.email,
@@ -29,6 +45,10 @@ const LogIn = () => {
     }
     toast.success("تاییدیه ایمیل برای شما ارسال شد");
   };
+<<<<<<< HEAD
+=======
+  //Login
+>>>>>>> 598674f (Buy_Feature)
   const handleLogIn = async () => {
     const { error, data } = await supabase.auth.signInWithPassword({
       email: formData.email,

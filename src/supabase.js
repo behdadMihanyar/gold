@@ -6,7 +6,11 @@ const VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY = import.meta.env
 
 const supabase = createClient(
   VITE_SUPABASE_URL,
+<<<<<<< HEAD
   VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+=======
+  VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+>>>>>>> 598674f (Buy_Feature)
 );
 
 export default supabase;

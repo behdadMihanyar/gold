@@ -12,5 +12,9 @@ createRoot(document.getElementById("root")).render(
         <App />
       </DataProvider>
     </AuthProvider>
+<<<<<<< HEAD
   </BrowserRouter>
+=======
+  </BrowserRouter>,
+>>>>>>> 598674f (Buy_Feature)
 );

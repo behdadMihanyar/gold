@@ -21,7 +21,10 @@ const OrdersMobile = () => {
     delivery: "",
     status: "",
   });
+<<<<<<< HEAD
   const { isMobile, setIsMobile } = useDataContext();
+=======
+>>>>>>> 598674f (Buy_Feature)
 
   useEffect(() => {
     fetchOrders();
@@ -130,8 +133,13 @@ const OrdersMobile = () => {
     } else {
       setOrders(
         orders.map((order) =>
+<<<<<<< HEAD
           order.id === id ? { ...order, ...updatedData } : order
         )
+=======
+          order.id === id ? { ...order, ...updatedData } : order,
+        ),
+>>>>>>> 598674f (Buy_Feature)
       );
 
       setEditingId(null);
