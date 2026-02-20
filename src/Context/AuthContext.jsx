@@ -15,11 +15,7 @@ export function AuthProvider({ children }) {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
-<<<<<<< HEAD
-      }
-=======
       },
->>>>>>> 598674f (Buy_Feature)
     );
 
     return () => {

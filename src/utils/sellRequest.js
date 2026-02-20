@@ -1,14 +1,11 @@
 //Handle Change
-  export const handleChange = (e, formData, setFormData) => {
+export const handleChange = (e, formData, setFormData) => {
   const { name, value } = e.target;
 
   setFormData((prev) => {
     if (name === "price") {
       const numericValue = value.replace(/\D/g, "");
-      const formattedPrice = numericValue.replace(
-        /\B(?=(\d{3})+(?!\d))/g,
-        "/"
-      );
+      const formattedPrice = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "/");
 
       const quantity = prev.quantity;
       const price = numericValue;
@@ -16,10 +13,7 @@
       return {
         ...prev,
         price: formattedPrice,
-        total:
-          quantity && price
-            ? (quantity * price).toLocaleString()
-            : "",
+        total: quantity && price ? (quantity * price).toLocaleString() : "",
       };
     }
 
@@ -30,10 +24,7 @@
       return {
         ...prev,
         quantity: value,
-        total:
-          quantity && price
-            ? (quantity * price).toLocaleString()
-            : "",
+        total: quantity && price ? (quantity * price).toLocaleString() : "",
       };
     }
 
@@ -45,7 +36,7 @@ export const handleDateChange = (
   date,
   setFormData,
   setCalendarVisible,
-  persian
+  persian,
 ) => {
   setFormData((prev) => ({
     ...prev,
@@ -57,19 +48,17 @@ export const handleDateChange = (
   }
 };
 
-  //handle submit
-   export const handleSubmit = async (
+//handle submit
+export const handleSubmit = async (
   e,
   formData,
   setFormData,
   supabase,
-  toast
+  toast,
 ) => {
   e.preventDefault();
 
-  const { error } = await supabase
-    .from("tasks")
-    .insert(formData);
+  const { error } = await supabase.from("tasks").insert(formData);
 
   if (error) {
     console.log(error.message);

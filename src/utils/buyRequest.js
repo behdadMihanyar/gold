@@ -1,14 +1,11 @@
 //Handle Change
-  export const handleChangeBuy = (e, formDataBuy, setformDataBuy) => {
+export const handleChangeBuy = (e, formDataBuy, setformDataBuy) => {
   const { name, value } = e.target;
 
   setformDataBuy((prev) => {
     if (name === "price") {
       const numericValue = value.replace(/\D/g, "");
-      const formattedPrice = numericValue.replace(
-        /\B(?=(\d{3})+(?!\d))/g,
-        "/"
-      );
+      const formattedPrice = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, "/");
 
       const quantity = prev.quantity;
       const price = numericValue;
@@ -16,10 +13,7 @@
       return {
         ...prev,
         price: formattedPrice,
-        total:
-          quantity && price
-            ? (quantity * price).toLocaleString()
-            : "",
+        total: quantity && price ? (quantity * price).toLocaleString() : "",
       };
     }
 
@@ -30,10 +24,7 @@
       return {
         ...prev,
         quantity: value,
-        total:
-          quantity && price
-            ? (quantity * price).toLocaleString()
-            : "",
+        total: quantity && price ? (quantity * price).toLocaleString() : "",
       };
     }
 
@@ -44,32 +35,30 @@
 export const handleDateChangeBuy = (
   date,
   setformDataBuy,
-  setCalendarVisible,
-  persian
+  setCalendarVisibleBuy,
+  persian,
 ) => {
   setformDataBuy((prev) => ({
     ...prev,
     date: date.format("YYYY/MM/DD", { calendar: persian }),
   }));
 
-  if (setCalendarVisible) {
-    setCalendarVisible(false);
+  if (setCalendarVisibleBuy) {
+    setCalendarVisibleBuy(false);
   }
 };
 
-  //handle submit
-   export const handleSubmitBuy = async (
+//handle submit
+export const handleSubmitBuy = async (
   e,
   formDataBuy,
   setformDataBuy,
   supabase,
-  toast
+  toast,
 ) => {
   e.preventDefault();
 
-  const { error } = await supabase
-    .from("buy")
-    .insert(formDataBuy);
+  const { error } = await supabase.from("buy").insert(formDataBuy);
 
   if (error) {
     console.log(error.message);
