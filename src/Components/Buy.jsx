@@ -121,43 +121,48 @@ const Buy = () => {
   };
   const totalCoin = allBuy.map((item) => Number(item.quantity));
   const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
+  //fetch today prices
+  const fetchTodayPrices = async () => {
+    const createToady = new DateObject({
+      calendar: persian,
+      locale: persian_fa,
+    });
+    const getToday = createToady.format("YYYY/MM/DD");
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const { data, error } = await supabase
+      .from("buy")
+      .select("*")
+      .eq("date", getToday);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    // Convert text to number and sum
+    const before = data;
+    const total = data.reduce((acc, row) => {
+      if (!row.total) return acc;
+      // Remove all non-digit characters
+      const numericPrice = Number(row.total.replace(/\D/g, ""));
+      return acc + (isNaN(numericPrice) ? 0 : numericPrice);
+    }, 0);
+
+    setTotalPrice(total);
+  };
 
   useEffect(() => {
-    const fetchTodayPrices = async () => {
-      const createToady = new DateObject({
-        calendar: persian,
-        locale: persian_fa,
-      });
-      const getToday = createToady.format("YYYY/MM/DD");
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const { data, error } = await supabase
-        .from("buy")
-        .select("*")
-        .eq("date", getToday);
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-      // Convert text to number and sum
-      const before = data;
-      const total = data.reduce((acc, row) => {
-        if (!row.total) return acc;
-        // Remove all non-digit characters
-        const numericPrice = Number(row.total.replace(/\D/g, ""));
-        return acc + (isNaN(numericPrice) ? 0 : numericPrice);
-      }, 0);
-
-      setTotalPrice(total);
-    };
-
     fetchTodayPrices();
   }, []);
+  //sound
+  const insertSound = new Audio("/sounds/ui.mp3");
+  const playSound = (type) => {
+    if (type === "UPDATE") insertSound.play();
+  };
   //real-time
   useEffect(() => {
     const channel = supabase
@@ -171,7 +176,7 @@ const Buy = () => {
         },
         async (payload) => {
           console.log("Realtime change:", payload);
-
+          playSound(payload.eventType);
           // Refresh current page
           fetchOrdersBuy();
 
@@ -186,6 +191,7 @@ const Buy = () => {
       supabase.removeChannel(channel);
     };
   }, [pagebuy]);
+
   return (
     <div>
       <div className="max-w-7xl mx-auto mt-10">
@@ -516,7 +522,8 @@ const Buy = () => {
                                   handleDelete(
                                     order.id,
                                     filteredCoin,
-                                    setFilteredCoin
+                                    setFilteredCoin,
+                                    fetchTodayPrices
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
@@ -553,19 +560,17 @@ const Buy = () => {
             disabled={pagebuy === 1}
             onClick={() => setPagebuy((prev) => prev - 1)}
           >
-            <GrLinkNext />
+            {!page === 1 && <GrLinkNext />}
           </button>
 
           <span>
-            {" "}
-            {pagebuy} از {totalPagesBuy}{" "}
+            {totalPagesBuy === 0 ? page : `${pagebuy} از ${totalPagesBuy}`}
           </span>
-
           <button
             disabled={pagebuy === totalPagesBuy}
             onClick={() => setPagebuy((prev) => prev + 1)}
           >
-            <GrLinkPrevious />
+            {totalPagesBuy !== pagebuy && <GrLinkPrevious />}
           </button>
         </div>
       </div>

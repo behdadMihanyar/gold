@@ -109,9 +109,43 @@ const Sell = () => {
     getTotalToadyCoin();
   }, [page]);
 
+  //sound
+  const insertSound = new Audio("/sounds/ui.mp3");
+  const playSound = (type) => {
+    if (type === "UPDATE") insertSound.play();
+  };
+  //realtime
   useEffect(() => {
     setFilteredCoin(orders);
   }, [orders]);
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-sell-table")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+        },
+        async (payload) => {
+          console.log("Realtime Sell Change:", payload);
+          playSound(payload.eventType);
+          // Refresh current page
+          fetchOrders();
+
+          // Refresh totals
+          getSalesDate(setAllSellToday);
+          getTotalToadyCoin();
+          fetchTodayPrices(setTotalPrice);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [page]);
 
   //Loading ...
   if (loading) {
@@ -497,19 +531,16 @@ const Sell = () => {
             disabled={page === 1}
             onClick={() => setPage((prev) => prev - 1)}
           >
-            <GrLinkNext />
+            {page !== 1 && <GrLinkNext />}
           </button>
 
-          <span>
-            {" "}
-            {page} از {totalPages}{" "}
-          </span>
+          <span>{totalPages === 0 ? page : `${page} از ${totalPages}`}</span>
 
           <button
             disabled={page === totalPages}
             onClick={() => setPage((prev) => prev + 1)}
           >
-            <GrLinkPrevious />
+            {totalPages !== page && <GrLinkPrevious />}
           </button>
         </div>
       </div>

@@ -124,13 +124,20 @@ export const handleCancel = (
 };
 
 //Delete
-export const handleDelete = async (id, filteredCoin, setFilteredCoin) => {
+export const handleDelete = async (
+  id,
+  filteredCoin,
+  setFilteredCoin,
+  fetchTodayPrices
+) => {
   if (window.confirm("Are you sure you want to delete this order?")) {
     const { error } = await supabase.from("buy").delete().eq("id", id);
     if (error) {
       alert("Error deleting order: " + error.message);
     } else {
+      fetchTodayPrices();
       setFilteredCoin(filteredCoin.filter((order) => order.id !== id));
+
       toast.success("سفارش با موفقیت حذف شد", {
         position: "top-left",
         style: {
