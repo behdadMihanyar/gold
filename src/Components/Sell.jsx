@@ -182,7 +182,7 @@ const Sell = () => {
         </div>
         {filteredCoin.length === 0 ? (
           <div className="bg-white shadow-xl rounded-2xl p-12 text-center">
-            <p className="text-xl text-gray-500">No orders found</p>
+            <p className="text-xl text-gray-500">سفارشی ثبت نشده است ...</p>
           </div>
         ) : (
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden">

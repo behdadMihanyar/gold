@@ -158,6 +158,34 @@ const Buy = () => {
 
     fetchTodayPrices();
   }, []);
+  //real-time
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-buy-table")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "buy",
+        },
+        async (payload) => {
+          console.log("Realtime change:", payload);
+
+          // Refresh current page
+          fetchOrdersBuy();
+
+          // Refresh totals
+          getBuyDate();
+          getTotalToadyCoin();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [pagebuy]);
   return (
     <div>
       <div className="max-w-7xl mx-auto mt-10">
@@ -211,7 +239,7 @@ const Buy = () => {
         </div>
         {filteredCoin.length === 0 ? (
           <div className="bg-white shadow-xl rounded-2xl p-12 text-center">
-            <p className="text-xl text-gray-500">No orders found</p>
+            <p className="text-xl text-gray-500">سفارشی ثبت نشده است ...</p>
           </div>
         ) : (
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
