@@ -1,10 +1,10 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import LogIn from "./LogIn";
-import Tasks from "./AddOrder";
 import Layout from "./layout/Layout";
 import Orders from "./Orders";
 import AddOrder from "./AddOrder";
+import Search from "./Components/Search";
 
 function App() {
   return (
@@ -21,6 +21,7 @@ function App() {
           }
         />
         <Route path="/addOrder" element={<AddOrder />} />
+        <Route path="/search" element={<Search />} />
       </Route>
     </Routes>
   );

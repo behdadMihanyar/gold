@@ -67,6 +67,11 @@ const MobileLayout = ({ show, setShow }) => {
                   سکه
                 </NavLink>
               </li>
+              <li>
+                <NavLink to="/search" onClick={() => setShow((prev) => !prev)}>
+                  جست و جو
+                </NavLink>
+              </li>
 
               <li
                 className="mt-3 cursor-pointer"

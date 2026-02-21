@@ -40,6 +40,16 @@ const DesktopLayout = () => {
               افزودن سفارش
             </NavLink>
             <NavLink
+              to="/search"
+              className={({ isActive }) =>
+                isActive
+                  ? "text-black no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  : "text-white no-underline hover:scale-108 duration-200 mr-3"
+              }
+            >
+              جست و جو
+            </NavLink>
+            <NavLink
               to="https://behdad.vercel.app/"
               className={({ isActive }) =>
                 isActive

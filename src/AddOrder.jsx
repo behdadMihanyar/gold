@@ -138,7 +138,7 @@ const AddOrder = () => {
                       date,
                       setFormData,
                       setCalendarVisible,
-                      persian
+                      persian,
                     )
                   }
                 />
@@ -243,7 +243,7 @@ const AddOrder = () => {
                       date,
                       setFormDataBuy,
                       setCalendarVisibleBuy,
-                      persian
+                      persian,
                     )
                   }
                 />
