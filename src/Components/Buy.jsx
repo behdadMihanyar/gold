@@ -138,7 +138,6 @@ const Buy = () => {
       .from("buy")
       .select("*")
       .eq("date", getToday);
-
     if (error) {
       console.error(error);
       return;
@@ -158,6 +157,8 @@ const Buy = () => {
   useEffect(() => {
     fetchTodayPrices();
   }, []);
+  console.log(totalPrice);
+
   //sound
   const insertSound = new Audio("/sounds/ui.mp3");
   const playSound = (type) => {
@@ -179,8 +180,8 @@ const Buy = () => {
           playSound(payload.eventType);
           // Refresh current page
           fetchOrdersBuy();
-
           // Refresh totals
+
           getBuyDate();
           getTotalToadyCoin();
         },
