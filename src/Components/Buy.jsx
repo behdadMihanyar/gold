@@ -78,7 +78,7 @@ const Buy = () => {
     const value = e.target.value.toLowerCase();
 
     const filtered = ordersBuy.filter((item) =>
-      item.name.toLowerCase().includes(value),
+      item.name.toLowerCase().includes(value)
     );
 
     setFilteredCoin(filtered);
@@ -184,7 +184,7 @@ const Buy = () => {
 
           getBuyDate();
           getTotalToadyCoin();
-        },
+        }
       )
       .subscribe();
 
@@ -292,7 +292,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -307,7 +307,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -323,7 +323,7 @@ const Buy = () => {
                                   e,
                                   setEditFormDataBuy,
                                   editFormDataBuy,
-                                  setCalendarVisibleBuy,
+                                  setCalendarVisibleBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -360,7 +360,7 @@ const Buy = () => {
                                     e,
                                     setEditFormDataBuy,
                                     editFormDataBuy,
-                                    setCalendarVisibleBuy,
+                                    setCalendarVisibleBuy
                                   )
                                 }
                               />
@@ -375,7 +375,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -390,7 +390,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -405,7 +405,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="border rounded px-2 py-1 text-sm"
@@ -424,7 +424,7 @@ const Buy = () => {
                                   setEditingIdBuy,
                                   editFormDataBuy,
                                   setFilteredCoin,
-                                  filteredCoin,
+                                  filteredCoin
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -451,7 +451,7 @@ const Buy = () => {
                                 handleCancel(
                                   setEditingIdBuy,
                                   setCalendarVisibleBuy,
-                                  setEditFormDataBuy,
+                                  setEditFormDataBuy
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
@@ -484,7 +484,15 @@ const Buy = () => {
                             {order.description || "-"}
                           </td>
                           <td className="px-6 py-4 text-center max-sm:p-3">
-                            {order.status || "-"}
+                            <p
+                              className={`px-3 py-1 rounded-full text-sm font-semibold text-center max-sm:p-3 ${
+                                order.status === "تسویه نشده"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
+                            >
+                              {order.status || "-"}
+                            </p>
                           </td>
 
                           <td className="px-6 py-4 text-center max-sm:p-3">
@@ -495,7 +503,7 @@ const Buy = () => {
                                   handleEdit(
                                     order,
                                     setEditingIdBuy,
-                                    setEditFormDataBuy,
+                                    setEditFormDataBuy
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -524,7 +532,7 @@ const Buy = () => {
                                     order.id,
                                     filteredCoin,
                                     setFilteredCoin,
-                                    fetchTodayPrices,
+                                    fetchTodayPrices
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"

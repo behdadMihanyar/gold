@@ -36,7 +36,7 @@ export const handleDateChange = (
   date,
   setFormData,
   setCalendarVisible,
-  persian,
+  persian
 ) => {
   setFormData((prev) => ({
     ...prev,
@@ -54,10 +54,15 @@ export const handleSubmit = async (
   formData,
   setFormData,
   supabase,
-  toast,
+  toast
 ) => {
   e.preventDefault();
-
+  if (!formData.date) {
+    toast.error("لطفا تاریخ را وارد نمایید", {
+      position: "top-left",
+    });
+    return;
+  }
   const { error } = await supabase.from("tasks").insert(formData);
 
   if (error) {

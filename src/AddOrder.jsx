@@ -138,7 +138,7 @@ const AddOrder = () => {
                       date,
                       setFormData,
                       setCalendarVisible,
-                      persian,
+                      persian
                     )
                   }
                 />
@@ -166,7 +166,7 @@ const AddOrder = () => {
 
           <button
             type="submit"
-            className="col-span-full w-full py-3 bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
+            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
           >
             ثبت سفارش
           </button>
@@ -243,7 +243,7 @@ const AddOrder = () => {
                       date,
                       setFormDataBuy,
                       setCalendarVisibleBuy,
-                      persian,
+                      persian
                     )
                   }
                 />
@@ -271,7 +271,7 @@ const AddOrder = () => {
 
           <button
             type="submit"
-            className="col-span-full w-full py-3 bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
+            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
           >
             ثبت سفارش
           </button>

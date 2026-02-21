@@ -49,7 +49,7 @@ const Search = () => {
         {/* Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="px-4 py-2 w-full bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          className="px-4 py-2 hover:shadow-xl cursor-pointer w-full bg-linear-to-r from-orange-400 to-red-400 text-white rounded-lg shadow hover:bg-blue-700 transition"
         >
           {date ? date : "انتخاب تاریخ"}
         </button>
@@ -78,9 +78,9 @@ const Search = () => {
           {/* Toggle Buttons */}
           <div className="flex justify-center mb-6 space-x-4 rtl:space-x-reverse">
             <button
-              className={`px-4 py-2 rounded-full font-semibold transition ${
+              className={`px-4 py-2 rounded-full hover:cursor-pointer font-semibold transition ${
                 activeTab === "buy"
-                  ? "bg-blue-500 text-white shadow-lg"
+                  ? "bg-orange-500 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setActiveTab("buy")}
@@ -88,9 +88,9 @@ const Search = () => {
               خرید
             </button>
             <button
-              className={`px-4 py-2 rounded-full font-semibold transition ${
+              className={`px-4 py-2 rounded-full cursor-pointer font-semibold transition ${
                 activeTab === "sell"
-                  ? "bg-blue-500 text-white shadow-lg"
+                  ? "bg-orange-500 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
               onClick={() => setActiveTab("sell")}
@@ -102,7 +102,7 @@ const Search = () => {
           {/* Orders Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse shadow-lg rounded-xl overflow-hidden">
-              <thead className="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-700 sticky top-0">
+              <thead className="bg-gradient-to-r from-orange-600 to-orange-400 text-white sticky top-0">
                 <tr>
                   <th className="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wide">
                     نام
@@ -137,7 +137,7 @@ const Search = () => {
                       colSpan={8}
                       className="text-center py-6 text-gray-500 italic"
                     >
-                      هیچ سفارشی وجود ندارد
+                      هیچ سفارشی وجود ندارد ...
                     </td>
                   </tr>
                 ) : (

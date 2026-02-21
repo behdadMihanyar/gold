@@ -65,6 +65,7 @@ const LogIn = () => {
       <h2 className="text-xl font-bold text-center pt-10 mt-10">
         <img src={logo} alt="سکه قصر" width={100} height={100} />
       </h2>
+      <h3 className="text-shadow-lg/20">پنل مدیریت خرید/فروش سکه قصر</h3>
 
       {/* Form Card */}
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md shadow-xl/30 shadow-blue-700 mt-10">

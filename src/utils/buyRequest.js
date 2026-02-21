@@ -36,7 +36,7 @@ export const handleDateChangeBuy = (
   date,
   setformDataBuy,
   setCalendarVisibleBuy,
-  persian,
+  persian
 ) => {
   setformDataBuy((prev) => ({
     ...prev,
@@ -54,10 +54,15 @@ export const handleSubmitBuy = async (
   formDataBuy,
   setformDataBuy,
   supabase,
-  toast,
+  toast
 ) => {
   e.preventDefault();
-
+  if (!formDataBuy.date) {
+    toast.error("لطفا تاریخ را وارد نمایید", {
+      position: "top-left",
+    });
+    return;
+  }
   const { error } = await supabase.from("buy").insert(formDataBuy);
 
   if (error) {
