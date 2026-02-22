@@ -35,6 +35,7 @@ const Sell = () => {
     total: "",
     delivery: "",
     status: "",
+    accounting: false,
   });
   //Context
   const {
@@ -93,7 +94,7 @@ const Sell = () => {
     const value = e.target.value.toLowerCase();
 
     const filtered = orders.filter((item) =>
-      item.name.toLowerCase().includes(value)
+      item.name.toLowerCase().includes(value),
     );
 
     setFilteredCoin(filtered);
@@ -138,7 +139,7 @@ const Sell = () => {
           getSalesDate(setAllSellToday);
           getTotalToadyCoin();
           fetchTodayPrices(setTotalPrice);
-        }
+        },
       )
       .subscribe();
 
@@ -224,6 +225,7 @@ const Sell = () => {
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-yellow-500 txt-xs to-orange-500 text-white">
                   <tr>
+                    <th className="px-6 max-sm:py-1 py-3 text-center">ثبت</th>
                     <th className="px-6 max-sm:py-1 py-3 text-center">نام</th>
                     <th className="px-6 max-sm:py-1 py-3 text-center">تعداد</th>
                     <th className="px-6 max-sm:py-1 py-3 text-center">نرخ</th>
@@ -262,7 +264,7 @@ const Sell = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormData,
-                                  editFormData
+                                  editFormData,
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -277,7 +279,7 @@ const Sell = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormData,
-                                  editFormData
+                                  editFormData,
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -293,7 +295,7 @@ const Sell = () => {
                                   e,
                                   setEditFormData,
                                   editFormData,
-                                  setCalendarVisible
+                                  setCalendarVisible,
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -330,7 +332,7 @@ const Sell = () => {
                                     e,
                                     setEditFormData,
                                     editFormData,
-                                    setCalendarVisible
+                                    setCalendarVisible,
                                   )
                                 }
                               />
@@ -345,7 +347,7 @@ const Sell = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormData,
-                                  editFormData
+                                  editFormData,
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -360,7 +362,7 @@ const Sell = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormData,
-                                  editFormData
+                                  editFormData,
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -375,7 +377,7 @@ const Sell = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormData,
-                                  editFormData
+                                  editFormData,
                                 )
                               }
                               className="border rounded px-2 py-1 text-sm"
@@ -394,7 +396,7 @@ const Sell = () => {
                                   setEditingId,
                                   editFormData,
                                   setFilteredCoin,
-                                  filteredCoin
+                                  filteredCoin,
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -421,7 +423,7 @@ const Sell = () => {
                                 handleCancel(
                                   setEditingId,
                                   setCalendarVisible,
-                                  setEditFormData
+                                  setEditFormData,
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
@@ -432,6 +434,23 @@ const Sell = () => {
                         </>
                       ) : (
                         <>
+                          <td className="px-6 py-4 text-center max-sm:p-3">
+                            <input
+                              type="checkbox"
+                              className="ml-auto"
+                              checked={order.accounting}
+                              onChange={async (e) => {
+                                const updatedValue = e.target.checked;
+
+                                await supabase
+                                  .from("tasks")
+                                  .update({ accounting: updatedValue })
+                                  .eq("id", order.id);
+
+                                fetchOrders(); // refresh data
+                              }}
+                            />
+                          </td>
                           <td className="px-6 py-4 text-center max-sm:p-3">
                             {order.name}
                           </td>
@@ -473,7 +492,7 @@ const Sell = () => {
                                   handleEdit(
                                     order,
                                     setEditingId,
-                                    setEditFormData
+                                    setEditFormData,
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -502,7 +521,7 @@ const Sell = () => {
                                     order.id,
                                     filteredCoin,
                                     setFilteredCoin,
-                                    getTotalToadyCoin
+                                    getTotalToadyCoin,
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"

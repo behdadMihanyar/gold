@@ -34,7 +34,7 @@ const Search = () => {
     }
     setDataBuy(data);
   };
-  console.log(dataBuy);
+  //select date
   const handleDate = (value) => {
     const formattedDate = value.format("YYYY/MM/DD", { calendar: persian });
     setDate(formattedDate);
@@ -42,6 +42,28 @@ const Search = () => {
     getTableSell(formattedDate);
     getTableBuy(formattedDate);
   };
+  //totalCoinSold
+  const total_coin_sold = dataSell.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0),
+    0,
+  );
+  //totalCoinBought
+  const total_coin_bought = dataBuy.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0),
+    0,
+  );
+  //totalPriceSold
+  const totalSoldAmount = dataSell.reduce(
+    (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
+    0,
+  );
+  //totalPriceBought
+  const totalBoughtAmount = dataBuy.reduce(
+    (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
+    0,
+  );
+
+  console.log(totalSoldAmount.toLocaleString());
 
   return (
     <div className="flex flex-col justify-center w-full">
@@ -76,27 +98,74 @@ const Search = () => {
       <div>
         <div className="p-6">
           {/* Toggle Buttons */}
-          <div className="flex justify-center mb-6 space-x-4 rtl:space-x-reverse">
-            <button
-              className={`px-4 py-2 rounded-full hover:cursor-pointer font-semibold transition ${
-                activeTab === "buy"
-                  ? "bg-orange-500 text-white shadow-lg"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-              onClick={() => setActiveTab("buy")}
-            >
-              خرید
-            </button>
-            <button
-              className={`px-4 py-2 rounded-full cursor-pointer font-semibold transition ${
-                activeTab === "sell"
-                  ? "bg-orange-500 text-white shadow-lg"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-              onClick={() => setActiveTab("sell")}
-            >
-              فروش
-            </button>
+          <div className="mb-8">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {/* Total Bought Coins */}
+              <div className="bg-white rounded-2xl shadow-md p-4 flex flex-col items-center border border-gray-100">
+                <span className="text-sm text-gray-500 mb-1">کل خرید</span>
+                <span className="text-xl font-bold text-green-600">
+                  {total_coin_bought.toLocaleString()} سکه
+                </span>
+                <span className="text-sm text-gray-400 mt-1">
+                  {totalBoughtAmount.toLocaleString()} تومان
+                </span>
+              </div>
+
+              {/* Total Sold Coins */}
+              <div className="bg-white rounded-2xl shadow-md p-4 flex flex-col items-center border border-gray-100">
+                <span className="text-sm text-gray-500 mb-1">کل فروش</span>
+                <span className="text-xl font-bold text-red-600">
+                  {total_coin_sold.toLocaleString()} سکه
+                </span>
+                <span className="text-sm text-gray-400 mt-1">
+                  {totalSoldAmount.toLocaleString()} تومان
+                </span>
+              </div>
+
+              {/* Net Coins */}
+              <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl justify-center shadow-lg p-4 flex flex-col items-center">
+                <span className="text-sm opacity-80 mb-1">بالانس سکه</span>
+                <span className="text-xl font-bold">
+                  {total_coin_bought - total_coin_sold} سکه
+                </span>
+              </div>
+
+              {/* Net Amount */}
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-lg p-4 flex flex-col justify-center items-center">
+                <span className="text-sm opacity-80 mb-1">بالانس مبلغ</span>
+                <span className="text-xl font-bold" dir="ltr">
+                  {(totalSoldAmount - totalBoughtAmount).toLocaleString()} تومان
+                </span>
+              </div>
+            </div>
+
+            {/* Toggle Buttons */}
+            <div className="flex justify-center">
+              <div className="bg-gray-100 p-1 rounded-full flex shadow-inner">
+                <button
+                  className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                    activeTab === "buy"
+                      ? "bg-orange-500 text-white shadow-md"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                  onClick={() => setActiveTab("buy")}
+                >
+                  خرید
+                </button>
+
+                <button
+                  className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                    activeTab === "sell"
+                      ? "bg-orange-500 text-white shadow-md"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                  onClick={() => setActiveTab("sell")}
+                >
+                  فروش
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Orders Table */}
