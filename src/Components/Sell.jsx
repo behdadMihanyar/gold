@@ -256,6 +256,23 @@ const Sell = () => {
                     >
                       {editingId === order.id ? (
                         <>
+                          <td className="px-6 py-4 text-center max-sm:p-3">
+                            <input
+                              type="checkbox"
+                              className="ml-auto"
+                              checked={order.accounting}
+                              onChange={async (e) => {
+                                const updatedValue = e.target.checked;
+
+                                await supabase
+                                  .from("tasks")
+                                  .update({ accounting: updatedValue })
+                                  .eq("id", order.id);
+
+                                fetchOrders(); // refresh data
+                              }}
+                            />
+                          </td>
                           <td className="px-6 py-4 text-center">
                             <input
                               name="name"
