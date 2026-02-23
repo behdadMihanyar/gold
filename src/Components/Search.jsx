@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { Calendar } from "react-multi-date-picker";
 import supabase from "../supabase";
+import DateObject from "react-date-object";
 
 const Search = () => {
   const [date, setDate] = useState(null);
@@ -11,6 +12,12 @@ const Search = () => {
   const [dataBuy, setDataBuy] = useState([]);
   const [activeTab, setActiveTab] = useState("buy"); // "buy" or "sell"
   const data = activeTab === "buy" ? dataBuy : dataSell;
+  const persianDate = new DateObject({
+    calendar: persian,
+    locale: persian_fa,
+  });
+  const getToday = persianDate.format("YYYY/MM/DD");
+  console.log(getToday);
   //sell from supabase
   const getTableSell = async (formattedDate) => {
     const { error, data } = await supabase
@@ -64,7 +71,16 @@ const Search = () => {
   );
 
   console.log(totalSoldAmount.toLocaleString());
+  useEffect(() => {
+    if (!date) return;
 
+    getTableSell(date);
+    getTableBuy(date);
+  }, [date]);
+
+  useEffect(() => {
+    setDate(getToday);
+  }, []);
   return (
     <div className="flex flex-col justify-center w-full">
       <div className="flex justify-center">
@@ -108,7 +124,7 @@ const Search = () => {
                   {total_coin_bought.toLocaleString()} سکه
                 </span>
                 <span className="text-sm text-gray-400 mt-1">
-                  {totalBoughtAmount.toLocaleString()} تومان
+                  {totalBoughtAmount.toLocaleString()} ریال
                 </span>
               </div>
 
@@ -119,15 +135,15 @@ const Search = () => {
                   {total_coin_sold.toLocaleString()} سکه
                 </span>
                 <span className="text-sm text-gray-400 mt-1">
-                  {totalSoldAmount.toLocaleString()} تومان
+                  {totalSoldAmount.toLocaleString()} ریال
                 </span>
               </div>
 
               {/* Net Coins */}
               <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl justify-center shadow-lg p-4 flex flex-col items-center">
                 <span className="text-sm opacity-80 mb-1">بالانس سکه</span>
-                <span className="text-xl font-bold">
-                  {total_coin_bought - total_coin_sold} سکه
+                <span className="text-xl font-bold" dir="ltr">
+                  {total_coin_bought - total_coin_sold}
                 </span>
               </div>
 
@@ -135,7 +151,7 @@ const Search = () => {
               <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-lg p-4 flex flex-col justify-center items-center">
                 <span className="text-sm opacity-80 mb-1">بالانس مبلغ</span>
                 <span className="text-xl font-bold" dir="ltr">
-                  {(totalSoldAmount - totalBoughtAmount).toLocaleString()} تومان
+                  {(totalSoldAmount - totalBoughtAmount).toLocaleString()} ریال
                 </span>
               </div>
             </div>

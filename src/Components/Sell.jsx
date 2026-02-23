@@ -588,8 +588,11 @@ const Sell = () => {
           <button
             disabled={page === 1}
             onClick={() => setPage((prev) => prev - 1)}
+            className={`p-2 rounded ${
+              page === 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-200"
+            }`}
           >
-            {page !== 1 && <GrLinkNext />}
+            <GrLinkNext />
           </button>
 
           <span>{totalPages === 0 ? page : `${page} از ${totalPages}`}</span>
@@ -597,8 +600,13 @@ const Sell = () => {
           <button
             disabled={page === totalPages}
             onClick={() => setPage((prev) => prev + 1)}
+            className={`p-2 rounded ${
+              page === totalPages
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-gray-200"
+            }`}
           >
-            {totalPages !== page && <GrLinkPrevious />}
+            <GrLinkPrevious />
           </button>
         </div>
       </div>

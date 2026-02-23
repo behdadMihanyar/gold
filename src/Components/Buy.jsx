@@ -604,18 +604,29 @@ const Buy = () => {
           <button
             disabled={pagebuy === 1}
             onClick={() => setPagebuy((prev) => prev - 1)}
+            className={`p-2 rounded ${
+              pagebuy === 1
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-gray-200"
+            }`}
           >
-            {!page === 1 && <GrLinkNext />}
+            <GrLinkNext />
           </button>
 
           <span>
-            {totalPagesBuy === 0 ? page : `${pagebuy} از ${totalPagesBuy}`}
+            {totalPagesBuy === 0 ? pagebuy : `${pagebuy} از ${totalPagesBuy}`}
           </span>
+
           <button
             disabled={pagebuy === totalPagesBuy}
             onClick={() => setPagebuy((prev) => prev + 1)}
+            className={`p-2 rounded ${
+              pagebuy === totalPagesBuy
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-gray-200"
+            }`}
           >
-            {totalPagesBuy !== pagebuy && <GrLinkPrevious />}
+            <GrLinkPrevious />
           </button>
         </div>
       </div>
