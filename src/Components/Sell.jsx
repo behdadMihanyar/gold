@@ -101,7 +101,7 @@ const Sell = () => {
   const totalCoin = allSell.map((item) => Number(item.quantity));
   // const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
   const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
-
+  console.log(totalPrice);
   //filter by name
   const filterCoin = (e) => {
     const value = e.target.value.toLowerCase();
@@ -130,6 +130,7 @@ const Sell = () => {
     fetchAllOrders();
     getSalesDate(setAllSellToday);
     getTotalToadyCoin();
+    fetchTodayPrices(setTotalPrice);
   }, [page]);
 
   //sound
