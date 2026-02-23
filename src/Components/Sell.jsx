@@ -17,6 +17,7 @@ import {
 } from "../utils/sellUpdate.js";
 const Sell = () => {
   //States for sell
+  const [searchValue, setSearchValue] = useState("");
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -103,20 +104,27 @@ const Sell = () => {
 
   //filter by name
   const filterCoin = (e) => {
-    console.log(filteredCoin);
     const value = e.target.value.toLowerCase();
+    setSearchValue(value);
 
+    // اگر سرچ خالی بود → برگرد به صفحه فعلی
+    if (value.trim() === "") {
+      setFilteredCoin(orders);
+      return;
+    }
+
+    // اگر سرچ داشت → کل دیتابیس رو فیلتر کن
     const filtered = allOrders.filter((item) =>
       item.name.toLowerCase().includes(value),
     );
 
     setFilteredCoin(filtered);
   };
-
   useEffect(() => {
-    fetchTodayPrices(setTotalPrice);
-  }, []);
-
+    if (searchValue.trim() === "") {
+      setFilteredCoin(orders);
+    }
+  }, [orders, searchValue]);
   useEffect(() => {
     fetchOrders();
     fetchAllOrders();
@@ -188,8 +196,9 @@ const Sell = () => {
           <div className="relative mb-8">
             <input
               type="text"
+              value={searchValue}
               placeholder="جست و جو ..."
-              onChange={(e) => filterCoin(e)}
+              onChange={filterCoin}
               className="
     w-72
     pr-10 pl-4 py-2
@@ -205,6 +214,7 @@ const Sell = () => {
     transition-all duration-300
   "
             />
+
             <svg
               className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2"
               fill="none"

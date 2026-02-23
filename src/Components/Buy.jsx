@@ -16,6 +16,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 const Buy = () => {
   //States for buy
+  const [searchValue, setSearchValue] = useState("");
   const [ordersBuy, setOrdersBuy] = useState([]);
   const [loadingBuy, setLoadingBuy] = useState(true);
   const [errorBuy, setErrorBuy] = useState(null);
@@ -77,14 +78,26 @@ const Buy = () => {
   //filter by name
   const filterCoin = (e) => {
     const value = e.target.value.toLowerCase();
+    setSearchValue(value);
 
-    const filtered = ordersBuy.filter((item) =>
+    // اگر سرچ خالی بود → فقط صفحه فعلی
+    if (value.trim() === "") {
+      setFilteredCoin(ordersBuy);
+      return;
+    }
+
+    // اگر سرچ داشت → کل دیتابیس رو فیلتر کن
+    const filtered = allBuy.filter((item) =>
       item.name.toLowerCase().includes(value),
     );
 
     setFilteredCoin(filtered);
   };
-
+  useEffect(() => {
+    if (searchValue.trim() === "") {
+      setFilteredCoin(ordersBuy);
+    }
+  }, [ordersBuy, searchValue]);
   useEffect(() => {
     fetchOrdersBuy();
     getBuyDate();
@@ -204,8 +217,9 @@ const Buy = () => {
           <div className="relative mb-8">
             <input
               type="text"
+              value={searchValue}
               placeholder="جست و جو ..."
-              onChange={(e) => filterCoin(e)}
+              onChange={filterCoin}
               className="
       w-72
       pr-10 pl-4 py-2
