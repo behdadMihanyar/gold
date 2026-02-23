@@ -26,6 +26,8 @@ const Sell = () => {
   const [allSellToday, setAllSellToday] = useState([]);
   const [allSell, setAllSell] = useState([]);
   const [filteredCoin, setFilteredCoin] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [search, setSearch] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
     quantity: "",
@@ -51,8 +53,17 @@ const Sell = () => {
     setTotalCountBuy,
   } = useDataContext();
 
-  //Sell tables from SupaBase
-  const PAGE_SIZE = 5;
+  //fetch all sell orders
+  const fetchAllOrders = async () => {
+    const { data, error } = await supabase.from("tasks").select("*");
+    if (error) {
+      console.log(error.message);
+    }
+    setAllOrders(data);
+  };
+
+  //Sell 5 rows from SupaBase
+  const PAGE_SIZE = 7;
   const fetchOrders = async () => {
     setLoading(true);
     const from = (page - 1) * PAGE_SIZE;
@@ -87,13 +98,15 @@ const Sell = () => {
     setAllSell(data);
   };
   const totalCoin = allSell.map((item) => Number(item.quantity));
-  const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
+  // const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
+  const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
 
   //filter by name
   const filterCoin = (e) => {
+    console.log(filteredCoin);
     const value = e.target.value.toLowerCase();
 
-    const filtered = orders.filter((item) =>
+    const filtered = allOrders.filter((item) =>
       item.name.toLowerCase().includes(value),
     );
 
@@ -106,6 +119,7 @@ const Sell = () => {
 
   useEffect(() => {
     fetchOrders();
+    fetchAllOrders();
     getSalesDate(setAllSellToday);
     getTotalToadyCoin();
   }, [page]);
@@ -209,10 +223,10 @@ const Sell = () => {
             تعداد کل امروز: {totalCoinsSoldToday} سکه
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
-            مبلغ کل امروز: {totalPrice.toLocaleString()}
+            مبلغ کل امروز : {totalPrice.toLocaleString()}ریال
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
-            تعداد کل : {totalCoinsSold} سکه
+            میانگین : {average} ریال
           </h2>
         </div>
         {filteredCoin.length === 0 ? (

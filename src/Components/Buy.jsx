@@ -110,6 +110,7 @@ const Buy = () => {
   };
   const totalToadyCoin = allBuyToday.map((item) => Number(item.quantity));
   const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
+  const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
 
   //total coins all
   const getTotalToadyCoin = async () => {
@@ -182,7 +183,6 @@ const Buy = () => {
           // Refresh current page
           fetchOrdersBuy();
           // Refresh totals
-
           getBuyDate();
           getTotalToadyCoin();
         },
@@ -242,7 +242,7 @@ const Buy = () => {
             مبلغ کل امروز: {totalPrice.toLocaleString()}
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
-            تعداد کل : {totalCoinsSold} سکه
+            میانگین : {average} ریال
           </h2>
         </div>
         {filteredCoin.length === 0 ? (

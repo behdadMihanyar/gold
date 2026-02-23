@@ -5,9 +5,10 @@ export function DataProvider({ children }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 558);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [totalCountBuy,setTotalCountBuy] = useState(0);
-  const [pagebuy,setPagebuy] = useState(1);
- 
+  const [totalCountBuy, setTotalCountBuy] = useState(0);
+  const [pagebuy, setPagebuy] = useState(1);
+  const [totalCountSell, setTotalCountSell] = useState(0);
+  const [pageSell, setPageSell] = useState(1);
 
   useEffect(() => {
     const handleResize = () => {
@@ -31,6 +32,10 @@ export function DataProvider({ children }) {
         setTotalCountBuy,
         pagebuy,
         setPagebuy,
+        totalCountSell,
+        setTotalCountSell,
+        pageSell,
+        setPageSell,
       }}
     >
       {children}
