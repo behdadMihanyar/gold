@@ -138,15 +138,15 @@ const OrdersMobile = () => {
   // ================= RENDER =================
   return (
     <div className="max-w-7xl mx-auto px-4 mt-6">
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-4">
         <button
-          className="bg-blue-400 p-3 rounded-2xl"
+          className="bg-blue-400 text-white font-semibold py-3 px-8 rounded-2xl shadow-md transition duration-300 transform hover:bg-blue-500 hover:scale-105"
           onClick={() => setToggle("sell")}
         >
           فروش
         </button>
         <button
-          className="bg-blue-400 p-3 rounded-2xl"
+          className="bg-green-400 text-white font-semibold py-3 px-8 rounded-2xl shadow-md transition duration-300 transform hover:bg-green-500 hover:scale-105"
           onClick={() => setToggle("buy")}
         >
           خرید
@@ -155,15 +155,15 @@ const OrdersMobile = () => {
       {toggle === "buy" ? (
         <div>
           {/* ================= HEADER ================= */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 mt-8">
             <div className="text-lg md:text-xl font-bold text-gray-800">
-              لیست خرید
+              - لیست خرید -
             </div>
-            <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
+            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
               تعداد کل : {totalCoinsBoughtToday} سکه
             </div>
 
-            <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
+            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
               مبلغ کل : {totalPriceBuy.toLocaleString()}
             </div>
           </div>
@@ -380,15 +380,15 @@ const OrdersMobile = () => {
       ) : (
         <div>
           {/* ================= HEADER ================= */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 mt-8">
             <div className="text-lg md:text-xl font-bold text-gray-800">
-              لیست فروش
+              - لیست فروش -
             </div>
-            <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
+            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
               تعداد کل : {totalCoinsSoldToday} سکه
             </div>
 
-            <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
+            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
               مبلغ کل : {totalPriceSell.toLocaleString()}
             </div>
           </div>

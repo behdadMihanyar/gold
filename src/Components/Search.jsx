@@ -52,28 +52,26 @@ const Search = () => {
   //totalCoinSold
   const total_coin_sold = dataSell.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
-    0,
+    0
   );
   //totalCoinBought
   const total_coin_bought = dataBuy.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
-    0,
+    0
   );
   //totalPriceSold
   const totalSoldAmount = dataSell.reduce(
     (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
-    0,
+    0
   );
   //totalPriceBought
   const totalBoughtAmount = dataBuy.reduce(
     (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
-    0,
+    0
   );
 
-  console.log(totalSoldAmount.toLocaleString());
   useEffect(() => {
     if (!date) return;
-
     getTableSell(date);
     getTableBuy(date);
   }, [date]);
@@ -81,13 +79,39 @@ const Search = () => {
   useEffect(() => {
     setDate(getToday);
   }, []);
+
+  //real-time
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-buy-table")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "buy",
+        },
+        async (payload) => {
+          console.log("Realtime change:", payload);
+          getTableSell(date);
+          getTableBuy(date);
+          setDate(getToday);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col justify-center w-full">
+    <div className="flex flex-col justify-center w-full md:px-0">
       <div className="flex justify-center">
         {/* Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="px-4 py-2 hover:shadow-xl cursor-pointer w-full bg-linear-to-r from-orange-400 to-red-400 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          className="px-4 py-2 hover:shadow-xl mt-15 cursor-pointer w-full bg-linear-to-r from-orange-400 to-red-400 text-white rounded-lg shadow hover:bg-blue-700 transition"
         >
           {date ? date : "انتخاب تاریخ"}
         </button>
@@ -116,9 +140,9 @@ const Search = () => {
           {/* Toggle Buttons */}
           <div className="mb-8">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {/* Total Bought Coins */}
-              <div className="bg-white rounded-2xl shadow-md p-4 flex flex-col items-center border border-gray-100">
+              <div className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center border border-gray-100">
                 <span className="text-sm text-gray-500 mb-1">کل خرید</span>
                 <span className="text-xl font-bold text-green-600">
                   {total_coin_bought.toLocaleString()} سکه
@@ -157,7 +181,7 @@ const Search = () => {
             </div>
 
             {/* Toggle Buttons */}
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-4">
               <div className="bg-gray-100 p-1 rounded-full flex shadow-inner">
                 <button
                   className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
@@ -185,9 +209,63 @@ const Search = () => {
           </div>
 
           {/* Orders Table */}
-          <div className="overflow-x-auto">
+          <div className="block md:hidden">
+            {/* Card View for Small Screens */}
+            {data.length === 0 ? (
+              <div className="text-center py-6 text-gray-500 italic">
+                هیچ سفارشی وجود ندارد ...
+              </div>
+            ) : (
+              data.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white mb-4 p-4 rounded-2xl shadow-lg border border-gray-200"
+                >
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">نام:</span>
+                    <span>{item.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">تعداد:</span>
+                    <span>{item.quantity}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">قیمت:</span>
+                    <span>{item.price.toLocaleString()} تومان</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">جمع کل:</span>
+                    <span>{item.total.toLocaleString()} تومان</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">تاریخ:</span>
+                    <span>{item.date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">تحویل:</span>
+                    <span>{item.delivery || "-"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-bold text-gray-700">وضعیت:</span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        item.status === "تسویه نشده"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Table View for Larger Screens */}
+          <div className="hidden md:block">
             <table className="min-w-full border-collapse shadow-lg rounded-xl overflow-hidden">
-              <thead className="bg-gradient-to-r from-orange-600 to-orange-400 text-white sticky top-0">
+              <thead className="bg-gradient-to-r from-orange-600 to-orange-400 text-white top-0">
                 <tr>
                   <th className="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wide">
                     نام
