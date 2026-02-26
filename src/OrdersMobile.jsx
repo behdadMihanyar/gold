@@ -9,6 +9,8 @@ import {
   handleEditChange as handleEditChangeBuy,
   handleUpdate as handleUpdateBuy,
   handleDateChange as handleDateChangeBuy,
+  fetchTodayPrices as fetchTodayPricesBuy,
+  getSalesDate as getSalesDateBuy,
 } from "./utils/buyUpdate.js";
 
 import {
@@ -18,6 +20,8 @@ import {
   handleEditChange as handleEditChangeSell,
   handleUpdate as handleUpdateSell,
   handleDateChange as handleDateChangeSell,
+  fetchTodayPrices as fetchTodayPricesSell,
+  getSalesDate as getSalesDate,
 } from "./utils/sellUpdate.js";
 import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
@@ -25,9 +29,9 @@ import persian_fa from "react-date-object/locales/persian_fa";
 
 const OrdersMobile = () => {
   //buy
+  const [totalPriceBuy, setTotalPriceBuy] = useState(0); // total price today
+  const [allBuyToday, setAllBuyToday] = useState([]); // total coin today
   const [ordersBuy, setOrdersBuy] = useState([]);
-  const [allBuy, setAllBuy] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
   const [editingIdBuy, setEditingIdBuy] = useState(null);
   const [calendarVisibleBuy, setCalendarVisibleBuy] = useState(false);
   const [editFormDataBuy, setEditFormDataBuy] = useState({
@@ -41,9 +45,9 @@ const OrdersMobile = () => {
     status: "",
   });
   //sell
+  const [totalPriceSell, setTotalPriceSell] = useState(0); // total price today
+  const [allSellToday, setAllSellToday] = useState([]); // total coin today
   const [ordersSell, setOrdersSell] = useState([]);
-  const [allSell, setAllSell] = useState([]);
-  const [totalPriceSell, setTotalPriceSell] = useState(0);
   const [editingIdSell, setEditingIdSell] = useState(null);
   const [calendarVisibleSell, setCalendarVisibleSell] = useState(false);
   const [editFormDataSell, setEditFormDataSell] = useState({
@@ -67,9 +71,10 @@ const OrdersMobile = () => {
     setPageSell,
   } = useDataContext();
   const PAGE_SIZE_BUY = 5;
-  const PAGE_SIZE_Sell = 5;
+  const PAGE_SIZE_SELL = 5;
 
   const [toggle, setToggle] = useState("sell");
+
   // ================= FETCH BUY =================
   const fetchOrdersBuy = async () => {
     const from = (pagebuy - 1) * PAGE_SIZE_BUY;
@@ -88,8 +93,8 @@ const OrdersMobile = () => {
   };
   // ================= FETCH Sell =================
   const fetchOrdersSell = async () => {
-    const from = (pagebuy - 1) * PAGE_SIZE_Sell;
-    const to = from + PAGE_SIZE_Sell - 1;
+    const from = (pageSell - 1) * PAGE_SIZE_SELL;
+    const to = from + PAGE_SIZE_SELL - 1;
 
     const { data, count, error } = await supabase
       .from("tasks")
@@ -103,39 +108,33 @@ const OrdersMobile = () => {
     }
   };
 
-  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_Sell);
-  const totalPagesSell = Math.ceil(totalCountSell / PAGE_SIZE_Sell);
+  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
+  const totalPagesSell = Math.ceil(totalCountSell / PAGE_SIZE_SELL);
 
-  // ================= TODAY DATA =================
-  const getTodayData = async () => {
-    const today = new Date();
-    const formatted = today.toLocaleDateString("fa-IR");
-    console.log(formatted);
+  // total today coin sell
+  const totalToadyCoin = allSellToday.map((item) => Number(item.quantity));
+  const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
+  console.log(totalCoinsSoldToday);
 
-    const { data } = await supabase
-      .from("buy")
-      .select("*")
-      .eq("date", formatted);
-
-    setAllBuy(data || []);
-
-    const total = (data || []).reduce((acc, row) => {
-      if (!row.total) return acc;
-      const numericPrice = Number(row.total.replace(/\D/g, ""));
-      return acc + (isNaN(numericPrice) ? 0 : numericPrice);
-    }, 0);
-    setTotalPrice(total);
-  };
-
-  const totalCoinsSold = allBuy
-    .map((item) => Number(item.quantity))
-    .reduce((sum, num) => sum + num, 0);
+  //total today coin buy
+  const totalToadyCoinBuy = allBuyToday.map((item) => Number(item.quantity));
+  const totalCoinsBoughtToday = totalToadyCoinBuy.reduce(
+    (sum, num) => sum + num,
+    0
+  );
 
   useEffect(() => {
+    fetchTodayPricesSell(setTotalPriceSell);
+    getSalesDate(setAllSellToday);
+    fetchTodayPricesBuy(setTotalPriceBuy);
+    getSalesDateBuy(setAllBuyToday);
+  }, []);
+  useEffect(() => {
     fetchOrdersBuy();
-    fetchOrdersSell();
-    getTodayData();
   }, [pagebuy]);
+  useEffect(() => {
+    fetchOrdersSell();
+  }, [pageSell]);
   // ================= RENDER =================
   return (
     <div className="max-w-7xl mx-auto px-4 mt-6">
@@ -161,11 +160,11 @@ const OrdersMobile = () => {
               لیست خرید
             </div>
             <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
-              تعداد کل : {totalCoinsSold} سکه
+              تعداد کل : {totalCoinsBoughtToday} سکه
             </div>
 
             <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
-              مبلغ کل : {totalPrice.toLocaleString()}
+              مبلغ کل : {totalPriceBuy.toLocaleString()}
             </div>
           </div>
 
@@ -332,9 +331,18 @@ const OrdersMobile = () => {
                       </button>
 
                       <button
-                        onClick={() =>
-                          handleDeleteBuy(order.id, ordersBuy, setOrdersBuy)
-                        }
+                        onClick={async () => {
+                          const deleted = await handleDeleteBuy(
+                            order.id,
+                            ordersBuy,
+                            setOrdersBuy
+                          );
+
+                          if (deleted) {
+                            fetchTodayPricesBuy(setTotalPriceBuy);
+                            getSalesDateBuy(setAllBuyToday);
+                          }
+                        }}
                         className="flex-1 bg-red-500 text-white py-1 rounded-lg text-sm"
                       >
                         حذف
@@ -347,7 +355,7 @@ const OrdersMobile = () => {
           </div>
 
           {/* ================= PAGINATION ================= */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex justify-center mt-6 gap-3">
             <button
               disabled={pagebuy === 1}
               onClick={() => setPagebuy((prev) => prev - 1)}
@@ -377,11 +385,11 @@ const OrdersMobile = () => {
               لیست فروش
             </div>
             <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
-              تعداد کل : {totalCoinsSold} سکه
+              تعداد کل : {totalCoinsSoldToday} سکه
             </div>
 
             <div className="w-full md:w-auto text-center font-bold bg-yellow-400 px-4 py-2 rounded-xl">
-              مبلغ کل : {totalPrice.toLocaleString()}
+              مبلغ کل : {totalPriceSell.toLocaleString()}
             </div>
           </div>
 
@@ -424,12 +432,12 @@ const OrdersMobile = () => {
 
                     <input
                       name="price"
-                      value={editFormDataBuy.price}
+                      value={editFormDataSell.price}
                       onChange={(e) =>
                         handleEditChangeSell(
                           e,
-                          setEditFormDataBuy,
-                          editFormDataBuy
+                          setEditFormDataSell,
+                          editFormDataSell
                         )
                       }
                       className="w-full border rounded px-2 py-1 text-sm"
@@ -437,17 +445,19 @@ const OrdersMobile = () => {
                     />
 
                     <div
-                      onClick={() => setCalendarVisibleBuy(!calendarVisibleBuy)}
+                      onClick={() =>
+                        setCalendarVisibleSell(!calendarVisibleSell)
+                      }
                       className="border rounded px-2 py-1 text-sm cursor-pointer text-center"
                     >
-                      {editFormDataBuy.date || "انتخاب تاریخ"}
+                      {editFormDataSell.date || "انتخاب تاریخ"}
                     </div>
 
-                    {calendarVisibleBuy && (
+                    {calendarVisibleSell && (
                       <Calendar
                         calendar={persian}
                         locale={persian_fa}
-                        value={editFormDataBuy.date}
+                        value={editFormDataSell.date}
                         onChange={(e) =>
                           handleDateChangeSell(
                             e,
@@ -548,9 +558,18 @@ const OrdersMobile = () => {
                       </button>
 
                       <button
-                        onClick={() =>
-                          handleDeleteSell(order.id, ordersSell, setOrdersSell)
-                        }
+                        onClick={async () => {
+                          const deleted = await handleDeleteSell(
+                            order.id,
+                            ordersSell,
+                            setOrdersSell
+                          );
+
+                          if (deleted) {
+                            fetchTodayPricesSell(setTotalPriceSell);
+                            getSalesDate(setAllSellToday);
+                          }
+                        }}
                         className="flex-1 bg-red-500 text-white py-1 rounded-lg text-sm"
                       >
                         حذف
@@ -563,7 +582,7 @@ const OrdersMobile = () => {
           </div>
 
           {/* ================= PAGINATION ================= */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex justify-center mt-6 gap-3">
             <button
               disabled={pageSell === 1}
               onClick={() => setPageSell((prev) => prev - 1)}
@@ -578,7 +597,7 @@ const OrdersMobile = () => {
 
             <button
               disabled={pageSell === totalPagesSell}
-              onClick={() => setPagebuy((prev) => prev + 1)}
+              onClick={() => setPageSell((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
               بعدی

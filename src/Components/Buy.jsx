@@ -88,7 +88,7 @@ const Buy = () => {
 
     // اگر سرچ داشت → کل دیتابیس رو فیلتر کن
     const filtered = allBuy.filter((item) =>
-      item.name.toLowerCase().includes(value),
+      item.name.toLowerCase().includes(value)
     );
 
     setFilteredCoin(filtered);
@@ -198,7 +198,7 @@ const Buy = () => {
           // Refresh totals
           getBuyDate();
           getTotalToadyCoin();
-        },
+        }
       )
       .subscribe();
 
@@ -325,7 +325,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -340,7 +340,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -356,7 +356,7 @@ const Buy = () => {
                                   e,
                                   setEditFormDataBuy,
                                   editFormDataBuy,
-                                  setCalendarVisibleBuy,
+                                  setCalendarVisibleBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -393,7 +393,7 @@ const Buy = () => {
                                     e,
                                     setEditFormDataBuy,
                                     editFormDataBuy,
-                                    setCalendarVisibleBuy,
+                                    setCalendarVisibleBuy
                                   )
                                 }
                               />
@@ -408,7 +408,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -423,7 +423,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="w-full border rounded px-2 py-1 text-sm text-center"
@@ -438,7 +438,7 @@ const Buy = () => {
                                 handleEditChange(
                                   e,
                                   setEditFormDataBuy,
-                                  editFormDataBuy,
+                                  editFormDataBuy
                                 )
                               }
                               className="border rounded px-2 py-1 text-sm"
@@ -457,7 +457,7 @@ const Buy = () => {
                                   setEditingIdBuy,
                                   editFormDataBuy,
                                   setFilteredCoin,
-                                  filteredCoin,
+                                  filteredCoin
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -484,7 +484,7 @@ const Buy = () => {
                                 handleCancel(
                                   setEditingIdBuy,
                                   setCalendarVisibleBuy,
-                                  setEditFormDataBuy,
+                                  setEditFormDataBuy
                                 )
                               }
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
@@ -553,7 +553,7 @@ const Buy = () => {
                                   handleEdit(
                                     order,
                                     setEditingIdBuy,
-                                    setEditFormDataBuy,
+                                    setEditFormDataBuy
                                   )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200"
@@ -577,14 +577,19 @@ const Buy = () => {
 
                               {/* Delete Button */}
                               <button
-                                onClick={() =>
-                                  handleDelete(
+                                onClick={async () => {
+                                  const deleted = await handleDelete(
                                     order.id,
                                     filteredCoin,
-                                    setFilteredCoin,
-                                    fetchTodayPrices,
-                                  )
-                                }
+                                    setFilteredCoin
+                                  );
+
+                                  if (deleted) {
+                                    fetchTodayPrices();
+                                    getBuyDate();
+                                    getTotalToadyCoin();
+                                  }
+                                }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
                               >
                                 <svg

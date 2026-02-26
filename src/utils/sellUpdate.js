@@ -52,6 +52,7 @@ export const getSalesDate = async (setAllSellToday) => {
     console.log(error.message);
     return;
   }
+
   setAllSellToday(data);
 };
 //Edit State Change
@@ -178,25 +179,24 @@ export const handleCancel = (
 };
 
 //Delete
-export const handleDelete = async (
-  id,
-  orders,
-  setOrders,
-  getTotalToadyCoin
-) => {
-  if (window.confirm("Are you sure you want to delete this order?")) {
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (error) {
-      alert("Error deleting order: " + error.message);
-    } else {
-      getTotalToadyCoin();
-      setOrders(orders.filter((order) => order.id !== id));
-      toast.success("سفارش با موفقیت حذف شد", {
-        position: "top-left",
-        style: {
-          fontSize: "18px",
-        },
-      });
-    }
+export const handleDelete = async (id, orders, setOrders) => {
+  if (!window.confirm("Are you sure you want to delete this order?")) {
+    return false;
   }
+
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
+
+  if (error) {
+    alert("Error deleting order: " + error.message);
+    return false;
+  }
+
+  setOrders(orders.filter((order) => order.id !== id));
+
+  toast.success("سفارش با موفقیت حذف شد", {
+    position: "top-left",
+    style: { fontSize: "18px" },
+  });
+
+  return true; // 👈 مهم
 };

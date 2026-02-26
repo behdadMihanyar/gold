@@ -2,6 +2,8 @@ import { toast } from "react-toastify";
 import supabase from "../supabase";
 import persian from "react-date-object/calendars/persian";
 import { Calendar } from "react-multi-date-picker";
+import DateObject from "react-date-object";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 //Edit State Change
 export const handleEdit = (order, setEditingIdBuy, setEditFormDataBuy) => {
@@ -17,7 +19,57 @@ export const handleEdit = (order, setEditingIdBuy, setEditFormDataBuy) => {
     status: order.status || "تسویه نشده",
   });
 };
+//total today prices
+export const fetchTodayPrices = async (setTotalPriceBuy) => {
+  const createToady = new DateObject({
+    calendar: persian,
+    locale: persian_fa,
+  });
+  const getToday = createToady.format("YYYY/MM/DD");
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const { data, error } = await supabase
+    .from("buy")
+    .select("*")
+    .eq("date", getToday);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+  // Convert text to number and sum
+  const before = data;
+  const total = data.reduce((acc, row) => {
+    if (!row.total) return acc;
+    // Remove all non-digit characters
+    const numericPrice = Number(row.total.replace(/\D/g, ""));
+    return acc + (isNaN(numericPrice) ? 0 : numericPrice);
+  }, 0);
+
+  setTotalPriceBuy(total);
+};
+//total coin today
+export const getSalesDate = async (setAllBuyToday) => {
+  const createToady = new DateObject({
+    calendar: persian,
+    locale: persian_fa,
+  });
+  const getToday = createToady.format("YYYY/MM/DD");
+  const { data, error } = await supabase
+    .from("buy")
+    .select("*")
+    .eq("date", getToday);
+  if (error) {
+    console.log(error.message);
+    return;
+  }
+  console.log(data);
+  setAllBuyToday(data);
+};
 //Edit
 export const handleEditChange = (e, setEditFormDataBuy, editFormDataBuy) => {
   const { name, value } = e.target;
@@ -124,26 +176,22 @@ export const handleCancel = (
 };
 
 //Delete
-export const handleDelete = async (
-  id,
-  filteredCoin,
-  setFilteredCoin,
-  fetchTodayPrices
-) => {
-  if (window.confirm("Are you sure you want to delete this order?")) {
-    const { error } = await supabase.from("buy").delete().eq("id", id);
-    if (error) {
-      alert("Error deleting order: " + error.message);
-    } else {
-      fetchTodayPrices();
-      setFilteredCoin(filteredCoin.filter((order) => order.id !== id));
+export const handleDelete = async (id, filteredCoin, setFilteredCoin) => {
+  if (!window.confirm("Are you sure you want to delete this order?")) return;
 
-      toast.success("سفارش با موفقیت حذف شد", {
-        position: "top-left",
-        style: {
-          fontSize: "18px",
-        },
-      });
-    }
+  const { error } = await supabase.from("buy").delete().eq("id", id);
+
+  if (error) {
+    alert("Error deleting order: " + error.message);
+    return false;
   }
+
+  setFilteredCoin(filteredCoin.filter((order) => order.id !== id));
+
+  toast.success("سفارش با موفقیت حذف شد", {
+    position: "top-left",
+    style: { fontSize: "18px" },
+  });
+
+  return true; // 👈 مهم
 };
