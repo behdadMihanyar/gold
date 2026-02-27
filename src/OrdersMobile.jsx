@@ -136,6 +136,45 @@ const OrdersMobile = () => {
   useEffect(() => {
     fetchOrdersSell();
   }, [pageSell]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-orders")
+
+      // listen to sell table
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+        },
+        (payload) => {
+          console.log("Sell change:", payload);
+          fetchOrdersSell();
+        }
+      )
+
+      // listen to buy table
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "buy",
+        },
+        (payload) => {
+          console.log("Buy change:", payload);
+          fetchOrdersBuy();
+        }
+      )
+
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [pagebuy, pageSell]);
   // ================= RENDER =================
   return (
     <div className="max-w-7xl mx-auto px-4 mt-6">
