@@ -106,12 +106,12 @@ const Search = () => {
   }, []);
 
   return (
-    <div className="flex flex-col justify-center w-full md:px-0">
-      <div className="flex justify-center">
+    <div className="flex flex-col justify-center w-full md:px-0 ">
+      <div className="flex justify-center flex-col">
         {/* Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="px-4 py-2 hover:shadow-xl mt-15 cursor-pointer w-full bg-linear-to-r from-orange-400 to-red-400 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          className="px-4 py-2 hover:shadow-xl mt-15 cursor-pointer w-full bg-linear-to-r from-blue-400 to-emerald-300 text-white rounded-lg shadow hover:bg-blue-700 transition"
         >
           {date ? date : "انتخاب تاریخ"}
         </button>
@@ -174,7 +174,7 @@ const Search = () => {
               {/* Net Amount */}
               <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-lg p-4 flex flex-col justify-center items-center">
                 <span className="text-sm opacity-80 mb-1">بالانس مبلغ</span>
-                <span className="text-xl font-bold" dir="ltr">
+                <span className="text-xl font-bold" dir="rtl">
                   {(totalSoldAmount - totalBoughtAmount).toLocaleString()} ریال
                 </span>
               </div>
@@ -186,7 +186,7 @@ const Search = () => {
                 <button
                   className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
                     activeTab === "buy"
-                      ? "bg-orange-500 text-white shadow-md"
+                      ? "bg-emerald-300 text-black shadow-md"
                       : "text-gray-600 hover:text-black"
                   }`}
                   onClick={() => setActiveTab("buy")}
@@ -197,7 +197,7 @@ const Search = () => {
                 <button
                   className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
                     activeTab === "sell"
-                      ? "bg-orange-500 text-white shadow-md"
+                      ? "bg-emerald-300 text-black shadow-md"
                       : "text-gray-600 hover:text-black"
                   }`}
                   onClick={() => setActiveTab("sell")}
@@ -265,7 +265,7 @@ const Search = () => {
           {/* Table View for Larger Screens */}
           <div className="hidden md:block">
             <table className="min-w-full border-collapse shadow-lg rounded-xl overflow-hidden">
-              <thead className="bg-gradient-to-r from-orange-600 to-orange-400 text-white top-0">
+              <thead className="bg-linear-to-r from-blue-400 to-emerald-300 text-white top-0">
                 <tr>
                   <th className="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wide">
                     نام
@@ -314,10 +314,10 @@ const Search = () => {
                       </td>
                       <td className="px-6 py-4 text-right">{item.quantity}</td>
                       <td className="px-6 py-4 text-right">
-                        {item.price.toLocaleString()} تومان
+                        {item.price.toLocaleString()} ریال
                       </td>
-                      <td className="px-6 py-4 text-right font-medium">
-                        {item.total.toLocaleString()} تومان
+                      <td className="px-6 py-4 text-right">
+                        {item.total.toLocaleString()} ریال
                       </td>
                       <td className="px-6 py-4 text-right">{item.date}</td>
                       <td className="px-6 py-4 text-right">

@@ -26,6 +26,7 @@ import {
 import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
 
 const OrdersMobile = () => {
   //buy
@@ -159,12 +160,12 @@ const OrdersMobile = () => {
             <div className="text-lg md:text-xl font-bold text-gray-800">
               - لیست خرید -
             </div>
-            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
-              تعداد کل : {totalCoinsBoughtToday} سکه
+            <div className="w-full md:w-auto text-center font-bold bg-emerald-300 px-4 py-2 rounded-xl">
+              تعداد کل امروز : {totalCoinsBoughtToday} سکه
             </div>
 
-            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
-              مبلغ کل : {totalPriceBuy.toLocaleString()}
+            <div className="w-full md:w-auto text-center font-bold bg-emerald-300 px-4 py-2 rounded-xl">
+              مبلغ کل امروز : {totalPriceBuy.toLocaleString()} ریال
             </div>
           </div>
 
@@ -361,7 +362,7 @@ const OrdersMobile = () => {
               onClick={() => setPagebuy((prev) => prev - 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
-              قبلی
+              <GrLinkNext />
             </button>
 
             <span className="font-medium">
@@ -373,7 +374,7 @@ const OrdersMobile = () => {
               onClick={() => setPagebuy((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
-              بعدی
+              <GrLinkPrevious />
             </button>
           </div>
         </div>
@@ -384,12 +385,12 @@ const OrdersMobile = () => {
             <div className="text-lg md:text-xl font-bold text-gray-800">
               - لیست فروش -
             </div>
-            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
-              تعداد کل : {totalCoinsSoldToday} سکه
+            <div className="w-full md:w-auto text-center font-bold bg-emerald-300 text-gray-800 px-4 py-2 rounded-xl">
+              تعداد کل امروز : {totalCoinsSoldToday} سکه
             </div>
 
-            <div className="w-full md:w-auto text-center font-bold bg-blue-400 px-4 py-2 rounded-xl">
-              مبلغ کل : {totalPriceSell.toLocaleString()}
+            <div className="w-full md:w-auto text-center font-bold bg-emerald-300 text-gray-800 px-4 py-2 rounded-xl">
+              مبلغ کل امروز : {totalPriceSell.toLocaleString()} ریال
             </div>
           </div>
 
@@ -588,7 +589,7 @@ const OrdersMobile = () => {
               onClick={() => setPageSell((prev) => prev - 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
-              قبلی
+              <GrLinkNext />
             </button>
 
             <span className="font-medium">
@@ -600,7 +601,7 @@ const OrdersMobile = () => {
               onClick={() => setPageSell((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
-              بعدی
+              <GrLinkPrevious />
             </button>
           </div>
         </div>

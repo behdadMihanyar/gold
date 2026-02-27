@@ -65,7 +65,7 @@ const AddOrder = () => {
   const [calendarVisibleBuy, setCalendarVisibleBuy] = useState(false);
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10 px-4 sm:px-6 lg:px-10 py-6">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10 px-4 sm:px-6 max-sm:mt-10 lg:px-10 py-6">
       {/* ================= SELL FORM ================= */}
       <div className="w-full lg:w-1/2 flex justify-center">
         <form

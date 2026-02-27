@@ -12,7 +12,7 @@ const DesktopLayout = () => {
   return (
     <div>
       <div className="flex h-screen overflow-hidden">
-        <aside className="w-64 bg-linear-to-b from-orange-400 to-red-400 text-whitep-4 flex flex-col rounded-l-4xl">
+        <aside className="w-64 bg-gradient-to-b from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% text-whitep-4 flex flex-col rounded-l-4xl">
           <h2 className="text-xl font-bold mb-6 text-center mt-10 flex justify-center">
             <img src={logo} alt="سکه قصر" width={100} height={100} />
           </h2>
@@ -22,7 +22,7 @@ const DesktopLayout = () => {
               to="/"
               className={({ isActive }) =>
                 isActive
-                  ? "text-black no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black "
+                  ? "text-gray-800 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black "
                   : "text-white no-underline hover:scale-108 duration-200 mr-3 "
               }
             >
@@ -33,7 +33,7 @@ const DesktopLayout = () => {
               to="/addOrder"
               className={({ isActive }) =>
                 isActive
-                  ? "text-black no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  ? "text-gray-800 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
                   : "text-white no-underline hover:scale-108 duration-200 mr-3"
               }
             >
@@ -43,7 +43,7 @@ const DesktopLayout = () => {
               to="/search"
               className={({ isActive }) =>
                 isActive
-                  ? "text-black no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  ? "text-gray-800 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
                   : "text-white no-underline hover:scale-108 duration-200 mr-3"
               }
             >
@@ -53,7 +53,7 @@ const DesktopLayout = () => {
               to="https://behdad.vercel.app/"
               className={({ isActive }) =>
                 isActive
-                  ? "text-black no-underline font-bold border-r-4 border-amber-600 p-1 mr-3 "
+                  ? "text-gray-800 no-underline font-bold border-r-4 border-amber-600 p-1 mr-3 "
                   : "text-white no-underline hover:scale-108 duration-200 mr-3"
               }
             >

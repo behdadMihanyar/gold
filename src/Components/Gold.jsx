@@ -17,7 +17,7 @@ const Gold = () => {
     try {
       const getData = async () => {
         const req = await fetch(
-          "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreeOmyTOvQelQcZdcQwNrggWfbKJKTu",
+          "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreeOmyTOvQelQcZdcQwNrggWfbKJKTu"
         );
         const res = await req.json();
         newArray = res.gold.reverse().map((item, index) => ({
@@ -32,7 +32,7 @@ const Gold = () => {
     }
   }, []);
   const newItems = filterCoin.filter(
-    (item) => item.id === 1 || item.id === 6 || item.id === 7,
+    (item) => item.id === 1 || item.id === 6 || item.id === 7
   );
   const persianDate = new DateObject({
     calendar: persian,
@@ -42,7 +42,7 @@ const Gold = () => {
 
   return (
     <div>
-      <h1 className="text-center font-bold text-2xl bg-gray-200 p-3 rounded-2xl shadow-md">
+      <h1 className="text-center font-bold text-2xl bg-emerald-300 p-3 rounded-2xl shadow-md">
         {getToday}
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mb-3">

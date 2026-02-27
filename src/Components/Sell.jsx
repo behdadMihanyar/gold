@@ -204,14 +204,14 @@ const Sell = () => {
     w-72
     pr-10 pl-4 py-2
     rounded-2xl
-    border-2 border-amber-400
+    border-2 border-emerald-200
     bg-white
     shadow-sm
     text-gray-700
     placeholder-gray-400
     focus:outline-none
-    focus:ring-2 focus:ring-amber-500
-    focus:border-amber-500
+    focus:ring-2 focus:ring-emerald-400
+    focus:border-bg-emerald-400
     transition-all duration-300
   "
             />
@@ -230,13 +230,13 @@ const Sell = () => {
               />
             </svg>
           </div>
-          <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
+          <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
             تعداد کل امروز: {totalCoinsSoldToday} سکه
           </h2>
-          <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
+          <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
             مبلغ کل امروز : {totalPrice.toLocaleString()}ریال
           </h2>
-          <h2 className="font-bold text-gray-600 mb-8 text-center bg-yellow-500 p-3 rounded-2xl ">
+          <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
             میانگین : {average} ریال
           </h2>
         </div>
@@ -248,7 +248,7 @@ const Sell = () => {
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-yellow-500 txt-xs to-orange-500 text-white">
+                <thead className="bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% text-white">
                   <tr>
                     <th className="px-6 max-sm:py-1 py-3 text-center">ثبت</th>
                     <th className="px-6 max-sm:py-1 py-3 text-center">نام</th>

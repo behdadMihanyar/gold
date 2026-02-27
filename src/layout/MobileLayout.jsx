@@ -14,7 +14,7 @@ const MobileLayout = ({ show, setShow }) => {
   return (
     <div>
       <div>
-        <main className="flex-1 p-3 bg-linear-to-br from-blue-50 to-purple-50 cursor-pointer">
+        <main className="flex-1 p-3 cursor-pointer">
           <button className="top-7 absolute" onClick={handleLogout}>
             <GrPowerShutdown color="black" size={30} />
           </button>
@@ -52,6 +52,11 @@ const MobileLayout = ({ show, setShow }) => {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/search" onClick={() => setShow((prev) => !prev)}>
+                  جست و جو
+                </NavLink>
+              </li>
+              <li>
                 <NavLink
                   to="https://behdad.vercel.app/"
                   onClick={() => setShow((prev) => !prev)}
@@ -65,11 +70,6 @@ const MobileLayout = ({ show, setShow }) => {
                   onClick={() => setShow((prev) => !prev)}
                 >
                   سکه
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/search" onClick={() => setShow((prev) => !prev)}>
-                  جست و جو
                 </NavLink>
               </li>
 
