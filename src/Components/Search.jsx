@@ -118,7 +118,7 @@ const Search = () => {
 
         {/* Animated Calendar */}
         <div
-          className={`absolute left-1/2 -translate-x-1/2 mt-2 z-50 transform transition-all duration-300 ease-out
+          className={`absolute left-1/2 -translate-x-1/2 mt-50 z-50 transform transition-all duration-300 ease-out
         ${
           open
             ? "opacity-100 scale-100 translate-y-0"

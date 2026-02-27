@@ -53,7 +53,7 @@ const Buy = () => {
   } = useDataContext();
 
   //Buy tables from supabase
-  const PAGE_SIZE_BUY = 5;
+  const PAGE_SIZE_BUY = 7;
   const fetchOrdersBuy = async () => {
     setLoadingBuy(true);
     const from = (pagebuy - 1) * PAGE_SIZE_BUY;
