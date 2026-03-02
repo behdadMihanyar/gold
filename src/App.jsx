@@ -5,6 +5,7 @@ import Layout from "./layout/Layout";
 import Orders from "./Orders";
 import AddOrder from "./AddOrder";
 import Search from "./Components/Search";
+import Sms from "./Components/Sms";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         />
         <Route path="/addOrder" element={<AddOrder />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/sms" element={<Sms />} />
       </Route>
     </Routes>
   );

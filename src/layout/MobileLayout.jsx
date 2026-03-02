@@ -57,6 +57,11 @@ const MobileLayout = ({ show, setShow }) => {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/sms" onClick={() => setShow((prev) => !prev)}>
+                  پنل پیامکی
+                </NavLink>
+              </li>
+              <li>
                 <NavLink
                   to="https://behdad.vercel.app/"
                   onClick={() => setShow((prev) => !prev)}

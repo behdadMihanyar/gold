@@ -178,7 +178,9 @@ const OrdersMobile = () => {
   // ================= RENDER =================
   return (
     <div className="max-w-7xl mx-auto px-4 mt-6">
-      <div className="flex justify-center gap-4">
+      <h2 className="text-center font-bold">پنل مدیریت خرید و فروش</h2>
+      <h3 className="text-center font-bold">سکه قصر</h3>
+      <div className="flex justify-center gap-4 mt-10">
         <button
           className="bg-blue-400 text-white font-semibold py-3 px-8 rounded-2xl shadow-md transition duration-300 transform hover:bg-blue-500 hover:scale-105"
           onClick={() => setToggle("sell")}
@@ -432,7 +434,6 @@ const OrdersMobile = () => {
               مبلغ کل امروز : {totalPriceSell.toLocaleString()} ریال
             </div>
           </div>
-
           {/* ================= MOBILE VIEW ================= */}
           <div className="md:hidden space-y-4">
             {ordersSell.map((order) => (
@@ -620,7 +621,6 @@ const OrdersMobile = () => {
               </div>
             ))}
           </div>
-
           {/* ================= PAGINATION ================= */}
           <div className="flex justify-center mt-6 gap-3">
             <button

@@ -1,24 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // همه فایل‌های JSX/TSX
+    "./src/**/*.{js,jsx,ts,tsx}", // All JSX/TSX files in src folder
   ],
   theme: {
     extend: {
       colors: {
-        primary: "#3b82f6", // آبی Tailwind
-        secondary: "#8b5cf6", // بنفش
-        accent: "#f43f5e", // قرمز/خروج و هشدار
-        bgLight: "#f0f4f8", // بک‌گراند روشن
+        primary: "#3b82f6", // Tailwind Blue
+        secondary: "#8b5cf6", // Purple
+        accent: "#f43f5e", // Red for alerts or actions
+        bgLight: "#f0f4f8", // Light background color
       },
       fontFamily: {
-        vazir: ["Vazirmatn", "sans-serif"], // فونت فارسی
+        vazir: ["vazir", "sans-serif"], // Persian font
       },
     },
   },
   plugins: [],
   corePlugins: {
-    preflight: true, // فعال بودن reset CSS
+    preflight: true, // Ensures reset CSS is applied
   },
-  darkMode: "media", // پشتیبانی از حالت تاریک اختیاری
+  darkMode: "media", // Dark mode based on system preference
 };

@@ -1,8 +1,19 @@
 @import "tailwindcss";
-
+@font-face {
+  font-family: "vazir";
+  src: url("/public/assets/fonts/Vazirmatn-Regular.woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "vazir";
+  src: url("/public/assets/fonts/Vazirmatn-Bold.woff2");
+  font-weight: 700;
+  font-style: normal;
+}
 body {
-  font-family: "Vazirmatn", sans-serif;
-  background-image: url("/src//img/background_img.jpg");
+  font-family: "vazir";
+  background-image: url("/src/img/background_img.jpg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
