@@ -19,7 +19,7 @@ const SessionControl = () => {
     // Cleanup
     return () => data.subscription.unsubscribe();
   }, []);
-  return <div>{session ? <Tasks /> : <LogIn />}</div>;
+  return <div>{session ? <Home /> : <LogIn />}</div>;
 };
 
 export default SessionControl;
