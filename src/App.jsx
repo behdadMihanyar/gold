@@ -12,17 +12,16 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LogIn />} />
-
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
         <Route
-          path="/orders"
+          path="/"
           element={
             <ProtectedRoute>
-              <Orders />
+              <Home />
             </ProtectedRoute>
           }
         />
+        <Route path="/orders" element={<Orders />} />
         <Route path="/addOrder" element={<AddOrder />} />
         <Route path="/search" element={<Search />} />
         <Route path="/sms" element={<Sms />} />
