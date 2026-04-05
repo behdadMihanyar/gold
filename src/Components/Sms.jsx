@@ -44,9 +44,9 @@ const Sms = () => {
     getSell();
   }, []);
   return (
-    <div>
+    <div className="p-3">
       <div className="flex justify-center mb-4">
-        <div className="bg-gray-100 p-1 rounded-full flex shadow-inner">
+        <div className="bg-gray-100 p-1 rounded-full flex shadow-inner mt-10">
           <button
             className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
               activeTab === "sell"
@@ -71,7 +71,7 @@ const Sms = () => {
       </div>
       <div>
         {buyLoading ? (
-          <h3>...</h3>
+          <h3 className="text-center mt-50">بارگذاری ...</h3>
         ) : (
           <div className="rounded-2xl overflow-hidden">
             <table className="w-full">

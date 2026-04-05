@@ -52,22 +52,22 @@ const Search = () => {
   //totalCoinSold
   const total_coin_sold = dataSell.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
-    0
+    0,
   );
   //totalCoinBought
   const total_coin_bought = dataBuy.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0),
-    0
+    0,
   );
   //totalPriceSold
   const totalSoldAmount = dataSell.reduce(
     (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
-    0
+    0,
   );
   //totalPriceBought
   const totalBoughtAmount = dataBuy.reduce(
     (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
-    0
+    0,
   );
 
   useEffect(() => {
@@ -96,7 +96,7 @@ const Search = () => {
           getTableSell(date);
           getTableBuy(date);
           setDate(getToday);
-        }
+        },
       )
       .subscribe();
 
@@ -107,7 +107,7 @@ const Search = () => {
 
   return (
     <div className="flex flex-col justify-center w-full md:px-0 ">
-      <div className="flex justify-center flex-col">
+      <div className="flex justify-center flex-col p-3">
         {/* Button */}
         <button
           onClick={() => setOpen(!open)}

@@ -14,8 +14,8 @@ const MobileLayout = ({ show, setShow }) => {
   return (
     <div>
       <div>
-        <main className="flex-1 p-3 cursor-pointer">
-          <button className="top-7 absolute" onClick={handleLogout}>
+        <main className="flex-1 cursor-pointer">
+          <button className="top-4 p-3 absolute" onClick={handleLogout}>
             <GrPowerShutdown color="black" size={30} />
           </button>
           <Outlet />

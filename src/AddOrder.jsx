@@ -5,7 +5,6 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { ToastContainer, toast } from "react-toastify";
 import CreatableSelect from "react-select/creatable";
-
 import {
   handleChange,
   handleDateChange,
@@ -138,7 +137,7 @@ const AddOrder = () => {
                       date,
                       setFormData,
                       setCalendarVisible,
-                      persian
+                      persian,
                     )
                   }
                 />
@@ -243,7 +242,7 @@ const AddOrder = () => {
                       date,
                       setFormDataBuy,
                       setCalendarVisibleBuy,
-                      persian
+                      persian,
                     )
                   }
                 />

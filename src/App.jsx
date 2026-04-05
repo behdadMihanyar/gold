@@ -6,6 +6,7 @@ import Orders from "./Orders";
 import AddOrder from "./AddOrder";
 import Search from "./Components/Search";
 import Sms from "./Components/Sms";
+import Home from "./Components/Home";
 
 function App() {
   return (
@@ -13,8 +14,9 @@ function App() {
       <Route path="/login" element={<LogIn />} />
 
       <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
         <Route
-          path="/"
+          path="/orders"
           element={
             <ProtectedRoute>
               <Orders />
@@ -24,6 +26,7 @@ function App() {
         <Route path="/addOrder" element={<AddOrder />} />
         <Route path="/search" element={<Search />} />
         <Route path="/sms" element={<Sms />} />
+        <Route path="/home" element={<Home />} />
       </Route>
     </Routes>
   );
