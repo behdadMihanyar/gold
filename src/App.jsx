@@ -17,7 +17,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Home />
+              <Orders />
             </ProtectedRoute>
           }
         />
