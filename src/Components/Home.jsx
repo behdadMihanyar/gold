@@ -5,13 +5,22 @@ import name from "../img/searchbyname.svg";
 import date from "../img/searchbydate.svg";
 import close from "../img/close.svg";
 import calendar from "../img/calendar.svg";
-
+import { getSalesDate, fetchTodayPrices } from "../utils/sellUpdate.js";
 const Home = () => {
   const navigate = useNavigate();
   const [showNameSearch, setShowNameSearch] = useState(false);
   const [showCal, setShowCal] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
+  const [allSellToday, setAllSellToday] = useState();
+  const [totalPrice, setTotalPrice] = useState();
+  useEffect(() => {
+    fetchTodayPrices(setTotalPrice);
+    getSalesDate(setAllSellToday);
+  }, []);
 
+  const totalToadyCoin = allSellToday.map((item) => Number(item.quantity));
+  const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
+  const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
   // Set current date in Persian format
   useEffect(() => {
     const date = new Date().toLocaleDateString("fa-IR");
@@ -126,11 +135,11 @@ const Home = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { title: "فروش امروز", val: "xxxxxxxxx" },
-              { title: "میانگین فروش امروز", val: "xxxxxxxxx" },
+              { title: "فروش امروز", val: { totalCoinsSoldToday } },
+              { title: "میانگین فروش امروز", val: { average } },
               { title: "خرید امروز", val: "xxxxxxxxx" },
               { title: "میانگین خرید امروز", val: "xxxxxxxxx" },
-              { title: "سکه های فروخته شده", val: "xxxxxxxxx" },
+              { title: "سکه های فروخته شده", val: { totalToadyCoin } },
               { title: "سکه های خریداری شده", val: "xxxxxxxxx" },
             ].map((item, index) => (
               <div
