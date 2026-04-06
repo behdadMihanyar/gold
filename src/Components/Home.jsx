@@ -11,7 +11,7 @@ const Home = () => {
   const [showNameSearch, setShowNameSearch] = useState(false);
   const [showCal, setShowCal] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
-  const [allSellToday, setAllSellToday] = useState();
+  const [allSellToday, setAllSellToday] = useState([]);
   const [totalPrice, setTotalPrice] = useState();
   useEffect(() => {
     fetchTodayPrices(setTotalPrice);
