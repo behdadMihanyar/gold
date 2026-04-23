@@ -86,7 +86,7 @@ const Home = () => {
           {/* Title Card */}
           <div className="text-center mb-10">
             <h1 className="text-3xl p-3 md:text-4xl font-extrabold text-transparent bg-clip-text text-white drop-shadow-sm">
-              پنل مدیریت خرید و فروش سکه قصر
+              بهداد پنل مدیریت خرید و فروش سکه قصر
             </h1>
             <p className="text-slate-400 mt-2 text-sm">
               داشبورد مدیریتی و آمار فروش
