@@ -121,3 +121,17 @@ upgrade enabled) to the API container. In production the session cookie is
 ```bash
 cd server && npm test
 ```
+
+## Deploy to a Linux server (Ubuntu / Debian)
+
+As root on the server:
+
+```bash
+apt-get update && apt-get install -y git
+git clone -b remove-supabase https://github.com/behdadMihanyar/gold /opt/gold
+bash /opt/gold/deploy/setup.sh
+```
+
+The script installs Node.js, PostgreSQL and nginx. It creates the database and writes `server/.env` with random secrets, builds the frontend and runs the API as the `gold-api` systemd service. nginx serves the site on port 80, and the script asks for the first admin account. To update later, run `bash /opt/gold/deploy/setup.sh` again.
+
+While the site is served over plain `http://`, `COOKIE_SECURE=false` is set in `server/.env`. After you add a domain and SSL, change it to `true` and run `systemctl restart gold-api`.

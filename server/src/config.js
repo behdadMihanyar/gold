@@ -16,6 +16,8 @@ const schema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   CORS_ORIGINS: z.string().default(""),
+  // Set to "false" only when the site is served over plain HTTP (no domain/SSL yet).
+  COOKIE_SECURE: z.enum(["true", "false"]).optional(),
   ALLOW_SIGNUP: z
     .enum(["true", "false"])
     .default("false")
@@ -44,5 +46,8 @@ export const config = Object.freeze({
     .map((o) => o.trim())
     .filter(Boolean),
   allowSignup: env.ALLOW_SIGNUP,
+  cookieSecure: env.COOKIE_SECURE
+    ? env.COOKIE_SECURE === "true"
+    : env.NODE_ENV === "production",
   authCookieName: "gold_session",
 });

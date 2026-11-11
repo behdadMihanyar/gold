@@ -24,7 +24,7 @@ export function verifySession(token) {
 
 export const baseCookieOptions = Object.freeze({
   httpOnly: true,
-  secure: config.isProduction,
+  secure: config.cookieSecure,
   sameSite: "lax",
   path: "/",
 });
