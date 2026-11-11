@@ -117,9 +117,9 @@ chmod 600 "$ENV_FILE"
 # ---------------------------------------------------------------- build
 log "Installing dependencies and building the frontend"
 cd "$APP_DIR"
-npm ci --no-audit --no-fund
+npm install --no-audit --no-fund
 npm run build
-npm --prefix server ci --omit=dev --no-audit --no-fund
+npm --prefix server install --omit=dev --no-audit --no-fund
 
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 
