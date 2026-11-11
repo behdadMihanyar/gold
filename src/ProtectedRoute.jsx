@@ -3,8 +3,14 @@ import { useAuth } from "./Context/AuthContext";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  console.log(user);
-  if (loading) return <p>Loading...</p>;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-2xl text-black">بارگذاری ...</div>
+      </div>
+    );
+  }
 
   return user ? children : <Navigate to="/login" replace />;
 }

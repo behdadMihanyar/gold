@@ -4,12 +4,13 @@ import { CiMenuBurger } from "react-icons/ci";
 import { FaGithub } from "react-icons/fa";
 import { IoArrowBack } from "react-icons/io5";
 import { GrPowerShutdown } from "react-icons/gr";
-import supabase from "../supabase";
+import { useAuth } from "../Context/AuthContext";
 const MobileLayout = ({ show, setShow }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    await logout();
+    navigate("/login", { replace: true });
   };
   return (
     <div>

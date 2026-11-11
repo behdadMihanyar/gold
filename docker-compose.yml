@@ -1,0 +1,39 @@
+# Local stack: PostgreSQL + API.  Run the frontend with `npm run dev` as usual;
+# Vite proxies /api and /socket.io to the API on port 4000.
+#
+#   docker compose up -d
+#   docker compose exec api npm run user:create -- you@example.com 'your-password'
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gold
+      POSTGRES_PASSWORD: gold
+      POSTGRES_DB: gold
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gold"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://gold:gold@db:5432/gold
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your shell or a .env file next to docker-compose.yml}
+      ALLOW_SIGNUP: "false"
+    ports:
+      - "4000:4000"
+
+volumes:
+  pgdata:

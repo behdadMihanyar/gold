@@ -1,34 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDataContext } from "../Context/DataContext";
 import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
-import { Calendar, DateObject } from "react-multi-date-picker";
+import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
-import supabase from "../supabase";
+import { ordersApi } from "../api/orders";
+import { useOrdersRealtime } from "../api/realtime";
+import { averagePrice } from "../utils/format";
 import {
   handleCancel,
-  handleDelete,
+  handleDateChange,
   handleEdit,
   handleEditChange,
-  handleUpdate,
-  handleDateChange,
-  getSalesDate,
-  fetchTodayPrices,
-} from "../utils/sellUpdate.js";
+  sellHandlers,
+} from "../utils/orderHandlers.js";
+
+const { handleUpdate, handleDelete, setAccounting, loadTodaySummary } =
+  sellHandlers;
+const PAGE_SIZE = 7;
+const SEARCH_LIMIT = 500;
+const updateSound =
+  typeof Audio !== "undefined" ? new Audio("/sounds/ui.mp3") : null;
+
 const Sell = () => {
   //States for sell
   const [searchValue, setSearchValue] = useState("");
-  const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [loading, setLoading] = useState(true); // first load only
+  const [todaySummary, setTodaySummary] = useState({ quantity: 0, amount: 0 });
   const [editingId, setEditingId] = useState(null);
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [allSellToday, setAllSellToday] = useState([]);
-  const [allSell, setAllSell] = useState([]);
   const [filteredCoin, setFilteredCoin] = useState([]);
-  const [allOrders, setAllOrders] = useState([]);
-  const [search, setSearch] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
     quantity: "",
@@ -41,135 +43,56 @@ const Sell = () => {
     accounting: false,
   });
   //Context
-  const {
-    isMobile,
-    setIsMobile,
-    pagebuy,
-    setPagebuy,
-    totalCount,
-    setTotalCount,
-    page,
-    setPage,
-    totalCountBuy,
-    setTotalCountBuy,
-  } = useDataContext();
+  const { page, setPage, totalCount, setTotalCount } = useDataContext();
 
-  //fetch all sell orders
-  const fetchAllOrders = async () => {
-    const { data, error } = await supabase.from("tasks").select("*");
-    if (error) {
-      console.log(error.message);
-    }
-    setAllOrders(data);
-  };
-
-  //Sell 5 rows from SupaBase
-  const PAGE_SIZE = 7;
-  const fetchOrders = async () => {
-    setLoading(true);
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-
-    const { data, count, error } = await supabase
-      .from("tasks")
-      .select("*", { count: "exact" })
-      .range(from, to)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw error;
-    } else {
-      setOrders(data || []);
-      setTotalCount(count);
+  // Current page, or — while searching — every order whose name matches.
+  const fetchOrders = useCallback(async () => {
+    const q = searchValue.trim();
+    try {
+      const res = q
+        ? await ordersApi.list("sell", { q, pageSize: SEARCH_LIMIT })
+        : await ordersApi.list("sell", { page, pageSize: PAGE_SIZE });
+      setFilteredCoin(res.data);
+      if (!q) setTotalCount(res.total);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchValue, setTotalCount]);
+
+  const refreshSummary = () => loadTodaySummary(setTodaySummary);
+
+  // Debounce while typing in the search box.
+  useEffect(() => {
+    const timer = setTimeout(fetchOrders, searchValue ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [fetchOrders, searchValue]);
+
+  useEffect(() => {
+    refreshSummary();
+  }, []);
+
+  //realtime
+  useOrdersRealtime(
+    (event) => {
+      if (event.action === "UPDATE") updateSound?.play().catch(() => {});
+      fetchOrders();
+      refreshSummary();
+    },
+    ["sell"],
+  );
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-  const totalToadyCoin = allSellToday.map((item) => Number(item.quantity));
-  const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
-
-  //total coins all
-  const getTotalToadyCoin = async () => {
-    const { data, error } = await supabase.from("tasks").select("*");
-    if (error) {
-      console.log(error.message);
-      return;
-    }
-    setAllSell(data);
-  };
-  const totalCoin = allSell.map((item) => Number(item.quantity));
-  // const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
-  const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
-  console.log(totalPrice);
-  //filter by name
-  const filterCoin = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchValue(value);
-
-    // اگر سرچ خالی بود → برگرد به صفحه فعلی
-    if (value.trim() === "") {
-      setFilteredCoin(orders);
-      return;
-    }
-
-    // اگر سرچ داشت → کل دیتابیس رو فیلتر کن
-    const filtered = allOrders.filter((item) =>
-      item.name.toLowerCase().includes(value),
-    );
-
-    setFilteredCoin(filtered);
-  };
-  useEffect(() => {
-    if (searchValue.trim() === "") {
-      setFilteredCoin(orders);
-    }
-  }, [orders, searchValue]);
-  useEffect(() => {
+  const filterCoin = (e) => setSearchValue(e.target.value);
+  const totalCoinsSoldToday = todaySummary.quantity;
+  const totalPrice = todaySummary.amount;
+  const average = averagePrice(totalPrice, totalCoinsSoldToday);
+  const toggleAccounting = async (order, checked) => {
+    await setAccounting(order.id, checked);
     fetchOrders();
-    fetchAllOrders();
-    getSalesDate(setAllSellToday);
-    getTotalToadyCoin();
-    fetchTodayPrices(setTotalPrice);
-  }, [page]);
-
-  //sound
-  const insertSound = new Audio("/sounds/ui.mp3");
-  const playSound = (type) => {
-    if (type === "UPDATE") insertSound.play();
   };
-  //realtime
-  useEffect(() => {
-    setFilteredCoin(orders);
-  }, [orders]);
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime-sell-table")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-        },
-        async (payload) => {
-          console.log("Realtime Sell Change:", payload);
-          playSound(payload.eventType);
-          // Refresh current page
-          fetchOrders();
-
-          // Refresh totals
-          getSalesDate(setAllSellToday);
-          getTotalToadyCoin();
-          fetchTodayPrices(setTotalPrice);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [page]);
 
   //Loading ...
   if (loading) {
@@ -286,16 +209,7 @@ const Sell = () => {
                               type="checkbox"
                               className="ml-auto"
                               checked={order.accounting}
-                              onChange={async (e) => {
-                                const updatedValue = e.target.checked;
-
-                                await supabase
-                                  .from("tasks")
-                                  .update({ accounting: updatedValue })
-                                  .eq("id", order.id);
-
-                                fetchOrders(); // refresh data
-                              }}
+                              onChange={(e) => toggleAccounting(order, e.target.checked)}
                             />
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -481,16 +395,7 @@ const Sell = () => {
                               type="checkbox"
                               className="ml-auto"
                               checked={order.accounting}
-                              onChange={async (e) => {
-                                const updatedValue = e.target.checked;
-
-                                await supabase
-                                  .from("tasks")
-                                  .update({ accounting: updatedValue })
-                                  .eq("id", order.id);
-
-                                fetchOrders(); // refresh data
-                              }}
+                              onChange={(e) => toggleAccounting(order, e.target.checked)}
                             />
                           </td>
                           <td className="px-6 py-4 text-center max-sm:p-3">
@@ -558,14 +463,14 @@ const Sell = () => {
 
                               {/* Delete Button */}
                               <button
-                                onClick={() =>
-                                  handleDelete(
+                                onClick={async () => {
+                                  const deleted = await handleDelete(
                                     order.id,
                                     filteredCoin,
                                     setFilteredCoin,
-                                    getTotalToadyCoin,
-                                  )
-                                }
+                                  );
+                                  if (deleted) refreshSummary();
+                                }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
                               >
                                 <svg

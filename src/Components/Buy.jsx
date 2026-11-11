@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDataContext } from "../Context/DataContext";
 import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
-import supabase from "../supabase";
-import { ToastContainer } from "react-toastify";
-import {
-  handleCancel,
-  handleDelete,
-  handleEdit,
-  handleEditChange,
-  handleUpdate,
-  handleDateChange,
-} from "../utils/buyUpdate.js";
-import { Calendar, DateObject } from "react-multi-date-picker";
+import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { ordersApi } from "../api/orders";
+import { useOrdersRealtime } from "../api/realtime";
+import { averagePrice } from "../utils/format";
+import {
+  buyHandlers,
+  handleCancel,
+  handleDateChange,
+  handleEdit,
+  handleEditChange,
+} from "../utils/orderHandlers.js";
+
+const { handleUpdate, handleDelete, setAccounting, loadTodaySummary } =
+  buyHandlers;
+const PAGE_SIZE_BUY = 7;
+const SEARCH_LIMIT = 500;
+const updateSound =
+  typeof Audio !== "undefined" ? new Audio("/sounds/ui.mp3") : null;
+
 const Buy = () => {
   //States for buy
   const [searchValue, setSearchValue] = useState("");
-  const [ordersBuy, setOrdersBuy] = useState([]);
-  const [loadingBuy, setLoadingBuy] = useState(true);
-  const [errorBuy, setErrorBuy] = useState(null);
-  const [allBuyToday, setAllBuyToday] = useState([]);
-  const [allBuy, setAllBuy] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [todaySummary, setTodaySummary] = useState({ quantity: 0, amount: 0 });
   const [editingIdBuy, setEditingIdBuy] = useState(null);
   const [calendarVisibleBuy, setCalendarVisibleBuy] = useState(false);
   const [editFormDataBuy, setEditFormDataBuy] = useState({
@@ -39,173 +42,57 @@ const Buy = () => {
   const [filteredCoin, setFilteredCoin] = useState([]);
 
   //Context
-  const {
-    isMobile,
-    setIsMobile,
-    pagebuy,
-    setPagebuy,
-    totalCount,
-    setTotalCount,
-    page,
-    setPage,
-    totalCountBuy,
-    setTotalCountBuy,
-  } = useDataContext();
+  const { pagebuy, setPagebuy, totalCountBuy, setTotalCountBuy } =
+    useDataContext();
 
-  //Buy tables from supabase
-  const PAGE_SIZE_BUY = 7;
-  const fetchOrdersBuy = async () => {
-    setLoadingBuy(true);
-    const from = (pagebuy - 1) * PAGE_SIZE_BUY;
-    const to = from + PAGE_SIZE_BUY - 1;
-
-    const { data, count, error } = await supabase
-      .from("buy")
-      .select("*", { count: "exact" })
-      .range(from, to)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw error;
-    } else {
-      setOrdersBuy(data || []);
-      setTotalCountBuy(count);
-      setFilteredCoin(data);
-      setLoadingBuy(false);
+  // Current page, or — while searching — every order whose name matches.
+  const fetchOrdersBuy = useCallback(async () => {
+    const q = searchValue.trim();
+    try {
+      const res = q
+        ? await ordersApi.list("buy", { q, pageSize: SEARCH_LIMIT })
+        : await ordersApi.list("buy", {
+            page: pagebuy,
+            pageSize: PAGE_SIZE_BUY,
+          });
+      setFilteredCoin(res.data);
+      if (!q) setTotalCountBuy(res.total);
+    } catch (err) {
+      console.error(err);
     }
-  };
-  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
-  //filter by name
-  const filterCoin = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchValue(value);
+  }, [pagebuy, searchValue, setTotalCountBuy]);
 
-    // اگر سرچ خالی بود → فقط صفحه فعلی
-    if (value.trim() === "") {
-      setFilteredCoin(ordersBuy);
-      return;
-    }
+  const refreshSummary = () => loadTodaySummary(setTodaySummary);
 
-    // اگر سرچ داشت → کل دیتابیس رو فیلتر کن
-    const filtered = allBuy.filter((item) =>
-      item.name.toLowerCase().includes(value)
-    );
-
-    setFilteredCoin(filtered);
-  };
+  // Debounce while typing in the search box.
   useEffect(() => {
-    if (searchValue.trim() === "") {
-      setFilteredCoin(ordersBuy);
-    }
-  }, [ordersBuy, searchValue]);
-  useEffect(() => {
-    fetchOrdersBuy();
-    getBuyDate();
-    getTotalToadyCoin();
-  }, [pagebuy]);
-
-  //total coins today
-  const getBuyDate = async () => {
-    const createToady = new DateObject({
-      calendar: persian,
-      locale: persian_fa,
-    });
-    const getToday = createToady.format("YYYY/MM/DD");
-    const { data, error } = await supabase
-      .from("buy")
-      .select("*")
-      .eq("date", getToday);
-    if (error) {
-      console.log(error.message);
-      return;
-    }
-    setAllBuyToday(data);
-  };
-  const totalToadyCoin = allBuyToday.map((item) => Number(item.quantity));
-  const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
-  const average = (totalPrice / totalCoinsSoldToday).toLocaleString();
-
-  //total coins all
-  const getTotalToadyCoin = async () => {
-    const { data, error } = await supabase.from("buy").select("*");
-    if (error) {
-      console.log(error.message);
-      return;
-    }
-    setAllBuy(data);
-  };
-  const totalCoin = allBuy.map((item) => Number(item.quantity));
-  const totalCoinsSold = totalCoin.reduce((sum, num) => sum + num, 0);
-  //fetch today prices
-  const fetchTodayPrices = async () => {
-    const createToady = new DateObject({
-      calendar: persian,
-      locale: persian_fa,
-    });
-    const getToday = createToady.format("YYYY/MM/DD");
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const { data, error } = await supabase
-      .from("buy")
-      .select("*")
-      .eq("date", getToday);
-    if (error) {
-      console.error(error);
-      return;
-    }
-    // Convert text to number and sum
-    const before = data;
-    const total = data.reduce((acc, row) => {
-      if (!row.total) return acc;
-      // Remove all non-digit characters
-      const numericPrice = Number(row.total.replace(/\D/g, ""));
-      return acc + (isNaN(numericPrice) ? 0 : numericPrice);
-    }, 0);
-
-    setTotalPrice(total);
-  };
+    const timer = setTimeout(fetchOrdersBuy, searchValue ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [fetchOrdersBuy, searchValue]);
 
   useEffect(() => {
-    fetchTodayPrices();
+    refreshSummary();
   }, []);
-  console.log(totalPrice);
 
-  //sound
-  const insertSound = new Audio("/sounds/ui.mp3");
-  const playSound = (type) => {
-    if (type === "UPDATE") insertSound.play();
-  };
   //real-time
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime-buy-table")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "buy",
-        },
-        async (payload) => {
-          console.log("Realtime change:", payload);
-          playSound(payload.eventType);
-          // Refresh current page
-          fetchOrdersBuy();
-          // Refresh totals
-          getBuyDate();
-          getTotalToadyCoin();
-        }
-      )
-      .subscribe();
+  useOrdersRealtime(
+    (event) => {
+      if (event.action === "UPDATE") updateSound?.play().catch(() => {});
+      fetchOrdersBuy();
+      refreshSummary();
+    },
+    ["buy"],
+  );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [pagebuy]);
+  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
+  const filterCoin = (e) => setSearchValue(e.target.value);
+  const totalCoinsSoldToday = todaySummary.quantity;
+  const totalPrice = todaySummary.amount;
+  const average = averagePrice(totalPrice, totalCoinsSoldToday);
+  const toggleAccounting = async (order, checked) => {
+    await setAccounting(order.id, checked);
+    fetchOrdersBuy();
+  };
 
   return (
     <div>
@@ -305,16 +192,7 @@ const Buy = () => {
                               type="checkbox"
                               className="ml-auto"
                               checked={order.accounting}
-                              onChange={async (e) => {
-                                const updatedValue = e.target.checked;
-
-                                await supabase
-                                  .from("buy")
-                                  .update({ accounting: updatedValue })
-                                  .eq("id", order.id);
-
-                                fetchOrdersBuy(); // refresh data
-                              }}
+                              onChange={(e) => toggleAccounting(order, e.target.checked)}
                             />
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -500,16 +378,7 @@ const Buy = () => {
                               type="checkbox"
                               className="ml-auto"
                               checked={order.accounting}
-                              onChange={async (e) => {
-                                const updatedValue = e.target.checked;
-
-                                await supabase
-                                  .from("buy")
-                                  .update({ accounting: updatedValue })
-                                  .eq("id", order.id);
-
-                                fetchOrdersBuy(); // refresh data
-                              }}
+                              onChange={(e) => toggleAccounting(order, e.target.checked)}
                             />
                           </td>
                           <td className="px-6 py-4 text-center max-sm:p-3">
@@ -584,11 +453,7 @@ const Buy = () => {
                                     setFilteredCoin
                                   );
 
-                                  if (deleted) {
-                                    fetchTodayPrices();
-                                    getBuyDate();
-                                    getTotalToadyCoin();
-                                  }
+                                  if (deleted) refreshSummary();
                                 }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
                               >
