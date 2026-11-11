@@ -2,8 +2,12 @@ import React, { useEffect, useState } from "react";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { Calendar } from "react-multi-date-picker";
-import supabase from "../supabase";
 import DateObject from "react-date-object";
+import { ordersApi } from "../api/orders";
+import { useOrdersRealtime } from "../api/realtime";
+import { parseAmount } from "../utils/format";
+
+const MAX_ROWS_PER_DAY = 500;
 
 const Search = () => {
   const [date, setDate] = useState(null);
@@ -17,30 +21,24 @@ const Search = () => {
     locale: persian_fa,
   });
   const getToday = persianDate.format("YYYY/MM/DD");
-  console.log(getToday);
-  //sell from supabase
-  const getTableSell = async (formattedDate) => {
-    const { error, data } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("date", formattedDate);
-    if (error) {
-      console.log(error.message);
-    }
-    setDataSell(data);
-  };
 
-  //buy from supabase
-  const getTableBuy = async (formattedDate) => {
-    const { error, data } = await supabase
-      .from("buy")
-      .select("*")
-      .eq("date", formattedDate);
-    if (error) {
-      console.log(error.message);
+  const loadDay = async (side, formattedDate, setRows) => {
+    try {
+      const res = await ordersApi.list(side, {
+        date: formattedDate,
+        pageSize: MAX_ROWS_PER_DAY,
+      });
+      setRows(res.data);
+    } catch (err) {
+      console.error(err);
+      setRows([]);
     }
-    setDataBuy(data);
   };
+  const getTableSell = (formattedDate) =>
+    loadDay("sell", formattedDate, setDataSell);
+  const getTableBuy = (formattedDate) =>
+    loadDay("buy", formattedDate, setDataBuy);
+
   //select date
   const handleDate = (value) => {
     const formattedDate = value.format("YYYY/MM/DD", { calendar: persian });
@@ -61,12 +59,12 @@ const Search = () => {
   );
   //totalPriceSold
   const totalSoldAmount = dataSell.reduce(
-    (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
+    (sum, item) => sum + parseAmount(item.total),
     0,
   );
   //totalPriceBought
   const totalBoughtAmount = dataBuy.reduce(
-    (sum, item) => sum + Number(item.total.replace(/\D/g, "")),
+    (sum, item) => sum + parseAmount(item.total),
     0,
   );
 
@@ -80,30 +78,12 @@ const Search = () => {
     setDate(getToday);
   }, []);
 
-  //real-time
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime-buy-table")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "buy",
-        },
-        async (payload) => {
-          console.log("Realtime change:", payload);
-          getTableSell(date);
-          getTableBuy(date);
-          setDate(getToday);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  //real-time: refresh the selected day when anything changes
+  useOrdersRealtime(() => {
+    if (!date) return;
+    getTableSell(date);
+    getTableBuy(date);
+  });
 
   return (
     <div className="flex flex-col justify-center w-full md:px-0 ">

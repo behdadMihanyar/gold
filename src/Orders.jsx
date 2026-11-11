@@ -1,18 +1,6 @@
-import React, { useState, useEffect } from "react";
-import supabase from "./supabase";
-
-import { ToastContainer, toast } from "react-toastify";
-import gold from "./img/gold.png";
+import { ToastContainer } from "react-toastify";
 import { useDataContext } from "./Context/DataContext";
 import OrdersMobile from "./OrdersMobile";
-import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
-import {
-  handleCancel,
-  handleDelete,
-  handleEdit,
-  handleEditChange,
-  handleUpdate,
-} from "./utils/sellUpdate";
 import Sell from "./Components/Sell";
 import Buy from "./Components/Buy";
 import Gold from "./Components/Gold";

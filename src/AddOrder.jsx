@@ -1,21 +1,16 @@
 import React, { useState } from "react";
-import supabase from "./supabase";
 import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import CreatableSelect from "react-select/creatable";
 import {
-  handleChange,
-  handleDateChange,
-  handleSubmit,
-} from "./utils/sellRequest.js";
-
-import {
-  handleChangeBuy,
-  handleDateChangeBuy,
-  handleSubmitBuy,
-} from "./utils/buyRequest.js";
+  buyHandlers,
+  emptyOrderForm,
+  handleFormChange,
+  handleFormDateChange,
+  sellHandlers,
+} from "./utils/orderHandlers.js";
 
 import { defaultNames } from "./Customers/Customers.js";
 
@@ -39,26 +34,10 @@ const AddOrder = () => {
   };
 
   // فروش
-  const [formData, setFormData] = useState({
-    name: "",
-    quantity: "",
-    price: "",
-    description: "",
-    date: "",
-    total: "",
-    delivery: "",
-  });
+  const [formData, setFormData] = useState(emptyOrderForm);
 
   // خرید
-  const [formDataBuy, setFormDataBuy] = useState({
-    name: "",
-    quantity: "",
-    price: "",
-    description: "",
-    date: "",
-    total: "",
-    delivery: "",
-  });
+  const [formDataBuy, setFormDataBuy] = useState(emptyOrderForm);
 
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarVisibleBuy, setCalendarVisibleBuy] = useState(false);
@@ -69,7 +48,7 @@ const AddOrder = () => {
       <div className="w-full lg:w-1/2 flex justify-center">
         <form
           onSubmit={(e) =>
-            handleSubmit(e, formData, setFormData, supabase, toast)
+            sellHandlers.handleSubmit(e, formData, setFormData)
           }
           className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6"
         >
@@ -103,7 +82,7 @@ const AddOrder = () => {
             name="quantity"
             type="number"
             value={formData.quantity}
-            onChange={(e) => handleChange(e, formData, setFormData)}
+            onChange={(e) => handleFormChange(e, setFormData)}
             required
           />
 
@@ -111,7 +90,7 @@ const AddOrder = () => {
             label="نرخ"
             name="price"
             value={formData.price}
-            onChange={(e) => handleChange(e, formData, setFormData)}
+            onChange={(e) => handleFormChange(e, setFormData)}
             required
           />
 
@@ -133,12 +112,7 @@ const AddOrder = () => {
                   locale={persian_fa}
                   value={formData.date}
                   onChange={(date) =>
-                    handleDateChange(
-                      date,
-                      setFormData,
-                      setCalendarVisible,
-                      persian,
-                    )
+                    handleFormDateChange(date, setFormData, setCalendarVisible)
                   }
                 />
               </div>
@@ -149,14 +123,14 @@ const AddOrder = () => {
             label="تحویل دهنده"
             name="delivery"
             value={formData.delivery}
-            onChange={(e) => handleChange(e, formData, setFormData)}
+            onChange={(e) => handleFormChange(e, setFormData)}
           />
 
           <div className="col-span-full">
             <textarea
               name="description"
               value={formData.description}
-              onChange={(e) => handleChange(e, formData, setFormData)}
+              onChange={(e) => handleFormChange(e, setFormData)}
               rows="2"
               placeholder="توضیحات"
               className="w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none resize-none py-2 placeholder-gray-400"
@@ -176,7 +150,7 @@ const AddOrder = () => {
       <div className="w-full lg:w-1/2 flex justify-center">
         <form
           onSubmit={(e) =>
-            handleSubmitBuy(e, formDataBuy, setFormDataBuy, supabase, toast)
+            buyHandlers.handleSubmit(e, formDataBuy, setFormDataBuy)
           }
           className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6"
         >
@@ -209,7 +183,7 @@ const AddOrder = () => {
             name="quantity"
             type="number"
             value={formDataBuy.quantity}
-            onChange={(e) => handleChangeBuy(e, formDataBuy, setFormDataBuy)}
+            onChange={(e) => handleFormChange(e, setFormDataBuy)}
             required
           />
 
@@ -217,7 +191,7 @@ const AddOrder = () => {
             label="نرخ"
             name="price"
             value={formDataBuy.price}
-            onChange={(e) => handleChangeBuy(e, formDataBuy, setFormDataBuy)}
+            onChange={(e) => handleFormChange(e, setFormDataBuy)}
             required
           />
 
@@ -238,12 +212,7 @@ const AddOrder = () => {
                   locale={persian_fa}
                   value={formDataBuy.date}
                   onChange={(date) =>
-                    handleDateChangeBuy(
-                      date,
-                      setFormDataBuy,
-                      setCalendarVisibleBuy,
-                      persian,
-                    )
+                    handleFormDateChange(date, setFormDataBuy, setCalendarVisibleBuy)
                   }
                 />
               </div>
@@ -254,14 +223,14 @@ const AddOrder = () => {
             label="تحویل دهنده"
             name="delivery"
             value={formDataBuy.delivery}
-            onChange={(e) => handleChangeBuy(e, formDataBuy, setFormDataBuy)}
+            onChange={(e) => handleFormChange(e, setFormDataBuy)}
           />
 
           <div className="col-span-full">
             <textarea
               name="description"
               value={formDataBuy.description}
-              onChange={(e) => handleChangeBuy(e, formDataBuy, setFormDataBuy)}
+              onChange={(e) => handleFormChange(e, setFormDataBuy)}
               rows="2"
               placeholder="توضیحات"
               className="w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none resize-none py-2 placeholder-gray-400"

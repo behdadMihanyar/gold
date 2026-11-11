@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
-import supabase from "./supabase";
+import { useAuth } from "./Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import background_img from "./img/background_img.jpg";
 import logo from "./img/logo.png";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 const LogIn = () => {
   //States
@@ -16,6 +16,7 @@ const LogIn = () => {
   });
 
   const navigate = useNavigate();
+  const { login, signup } = useAuth();
   //Change Login/SignUp
   const handleChange = (e) => {
     setFormData({
@@ -23,37 +24,25 @@ const LogIn = () => {
       [e.target.name]: e.target.value,
     });
   };
-  //SignUp
-  const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-    });
-    if (error) {
-      console.log(error.message);
-    }
-    toast.success("تاییدیه ایمیل برای شما ارسال شد");
-  };
-  //Login
-  const handleLogIn = async () => {
-    const { error, data } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    });
-    if (error) {
-      alert(error.message);
-    }
-    if (data) {
-      navigate("/");
-    }
-  };
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLogin) {
-      handleSignUp();
+    try {
+      if (isLogin) {
+        await login(formData.email, formData.password);
+      } else {
+        await signup(formData.email, formData.password);
+        toast.success("حساب کاربری با موفقیت ایجاد شد");
+      }
+      navigate("/", { replace: true });
+    } catch (err) {
+      const message =
+        err.status === 401
+          ? "ایمیل یا رمز عبور اشتباه است"
+          : err.status === 403
+            ? "ثبت نام غیرفعال است"
+            : err.message;
+      toast.error(message, { position: "top-left" });
     }
-    handleLogIn();
-    console.log(isLogin ? "Login Data:" : "Signup Data:", formData);
   };
 
   return (
@@ -67,6 +56,7 @@ const LogIn = () => {
       </h2>
       <h3 className="text-shadow-lg/20">پنل مدیریت خرید/فروش سکه قصر</h3>
 
+      <ToastContainer />
       {/* Form Card */}
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md shadow-xl/30 shadow-blue-700 mt-10">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">

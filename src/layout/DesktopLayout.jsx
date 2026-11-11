@@ -1,7 +1,7 @@
 import React from "react";
 import logout from "../img/logout.png";
 import logo from "../img/logo.png";
-import supabase from "../supabase";
+import { useAuth } from "../Context/AuthContext";
 import order from "../img/order.svg";
 import search from "../img/search.svg";
 import addorder from "../img/addorder.svg";
@@ -13,9 +13,10 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 const DesktopLayout = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    await logout();
+    navigate("/login", { replace: true });
   };
   const homeRoute = useLocation().pathname;
   console.log(homeRoute);

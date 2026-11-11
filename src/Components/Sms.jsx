@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import supabase from "../supabase";
+import { ordersApi } from "../api/orders";
 const Sms = () => {
   const [buy, setBuy] = useState([]);
   const [sell, setSell] = useState([]);
@@ -7,34 +7,24 @@ const Sms = () => {
   const [sellLoading, setSellLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("sell"); // "buy" or "sell"
   const data = activeTab === "sell" ? sell : buy;
+  // Latest orders per side for the SMS list.
+  const SMS_LIMIT = 500; // API maximum per request
   const getBuy = async () => {
     try {
-      const { data, error } = await supabase
-        .from("buy")
-        .select("id,name,quantity,price,total,date,status")
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.log(error.message);
-      }
-      setBuy(data);
+      const res = await ordersApi.list("buy", { pageSize: SMS_LIMIT });
+      setBuy(res.data);
     } catch (err) {
-      console.log(err.message);
+      console.error(err.message);
     } finally {
       setBuyLoading(false);
     }
   };
   const getSell = async () => {
     try {
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("id,name,quantity,price,total,date,status")
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.log(error.message);
-      }
-      setSell(data);
-    } catch (error) {
-      console.log(error.message);
+      const res = await ordersApi.list("sell", { pageSize: SMS_LIMIT });
+      setSell(res.data);
+    } catch (err) {
+      console.error(err.message);
     } finally {
       setSellLoading(false);
     }

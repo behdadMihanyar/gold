@@ -1,66 +1,60 @@
-// export default OrdersMobile;
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDataContext } from "./Context/DataContext.jsx";
-import supabase from "./supabase";
+import { ordersApi } from "./api/orders";
+import { useOrdersRealtime } from "./api/realtime";
 import {
-  handleCancel as handleCancelBuy,
-  handleDelete as handleDeleteBuy,
-  handleEdit as handleEditBuy,
-  handleEditChange as handleEditChangeBuy,
-  handleUpdate as handleUpdateBuy,
-  handleDateChange as handleDateChangeBuy,
-  fetchTodayPrices as fetchTodayPricesBuy,
-  getSalesDate as getSalesDateBuy,
-} from "./utils/buyUpdate.js";
-
-import {
-  handleCancel as handleCancelSell,
-  handleDelete as handleDeleteSell,
-  handleEdit as handleEditSell,
-  handleEditChange as handleEditChangeSell,
-  handleUpdate as handleUpdateSell,
-  handleDateChange as handleDateChangeSell,
-  fetchTodayPrices as fetchTodayPricesSell,
-  getSalesDate as getSalesDate,
-} from "./utils/sellUpdate.js";
+  buyHandlers,
+  handleCancel,
+  handleDateChange,
+  handleEdit,
+  handleEditChange,
+  sellHandlers,
+} from "./utils/orderHandlers.js";
 import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { GrLinkNext, GrLinkPrevious } from "react-icons/gr";
 
+// Shared form helpers, aliased per side for readability in the markup below.
+const handleCancelBuy = handleCancel;
+const handleCancelSell = handleCancel;
+const handleEditBuy = handleEdit;
+const handleEditSell = handleEdit;
+const handleEditChangeBuy = handleEditChange;
+const handleEditChangeSell = handleEditChange;
+const handleDateChangeBuy = handleDateChange;
+const handleDateChangeSell = handleDateChange;
+const { handleUpdate: handleUpdateBuy, handleDelete: handleDeleteBuy } =
+  buyHandlers;
+const { handleUpdate: handleUpdateSell, handleDelete: handleDeleteSell } =
+  sellHandlers;
+
+const PAGE_SIZE_BUY = 5;
+const PAGE_SIZE_SELL = 5;
+const emptyEditForm = {
+  name: "",
+  quantity: "",
+  price: "",
+  description: "",
+  date: "",
+  total: "",
+  delivery: "",
+  status: "",
+};
+
 const OrdersMobile = () => {
   //buy
-  const [totalPriceBuy, setTotalPriceBuy] = useState(0); // total price today
-  const [allBuyToday, setAllBuyToday] = useState([]); // total coin today
+  const [buyToday, setBuyToday] = useState({ quantity: 0, amount: 0 });
   const [ordersBuy, setOrdersBuy] = useState([]);
   const [editingIdBuy, setEditingIdBuy] = useState(null);
   const [calendarVisibleBuy, setCalendarVisibleBuy] = useState(false);
-  const [editFormDataBuy, setEditFormDataBuy] = useState({
-    name: "",
-    quantity: "",
-    price: "",
-    description: "",
-    date: "",
-    total: "",
-    delivery: "",
-    status: "",
-  });
+  const [editFormDataBuy, setEditFormDataBuy] = useState(emptyEditForm);
   //sell
-  const [totalPriceSell, setTotalPriceSell] = useState(0); // total price today
-  const [allSellToday, setAllSellToday] = useState([]); // total coin today
+  const [sellToday, setSellToday] = useState({ quantity: 0, amount: 0 });
   const [ordersSell, setOrdersSell] = useState([]);
   const [editingIdSell, setEditingIdSell] = useState(null);
   const [calendarVisibleSell, setCalendarVisibleSell] = useState(false);
-  const [editFormDataSell, setEditFormDataSell] = useState({
-    name: "",
-    quantity: "",
-    price: "",
-    description: "",
-    date: "",
-    total: "",
-    delivery: "",
-    status: "",
-  });
+  const [editFormDataSell, setEditFormDataSell] = useState(emptyEditForm);
   const {
     pagebuy,
     setPagebuy,
@@ -71,110 +65,67 @@ const OrdersMobile = () => {
     pageSell,
     setPageSell,
   } = useDataContext();
-  const PAGE_SIZE_BUY = 5;
-  const PAGE_SIZE_SELL = 5;
 
   const [toggle, setToggle] = useState("sell");
 
-  // ================= FETCH BUY =================
-  const fetchOrdersBuy = async () => {
-    const from = (pagebuy - 1) * PAGE_SIZE_BUY;
-    const to = from + PAGE_SIZE_BUY - 1;
-
-    const { data, count, error } = await supabase
-      .from("buy")
-      .select("*", { count: "exact" })
-      .range(from, to)
-      .order("created_at", { ascending: false });
-
-    if (!error) {
-      setOrdersBuy(data || []);
-      setTotalCountBuy(count);
+  // ================= FETCH =================
+  const fetchOrdersBuy = useCallback(async () => {
+    try {
+      const res = await ordersApi.list("buy", {
+        page: pagebuy,
+        pageSize: PAGE_SIZE_BUY,
+      });
+      setOrdersBuy(res.data);
+      setTotalCountBuy(res.total);
+    } catch (err) {
+      console.error(err);
     }
-  };
-  // ================= FETCH Sell =================
-  const fetchOrdersSell = async () => {
-    const from = (pageSell - 1) * PAGE_SIZE_SELL;
-    const to = from + PAGE_SIZE_SELL - 1;
+  }, [pagebuy, setTotalCountBuy]);
 
-    const { data, count, error } = await supabase
-      .from("tasks")
-      .select("*", { count: "exact" })
-      .range(from, to)
-      .order("created_at", { ascending: false });
-
-    if (!error) {
-      setOrdersSell(data || []);
-      setTotalCountSell(count);
+  const fetchOrdersSell = useCallback(async () => {
+    try {
+      const res = await ordersApi.list("sell", {
+        page: pageSell,
+        pageSize: PAGE_SIZE_SELL,
+      });
+      setOrdersSell(res.data);
+      setTotalCountSell(res.total);
+    } catch (err) {
+      console.error(err);
     }
-  };
+  }, [pageSell, setTotalCountSell]);
 
-  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
-  const totalPagesSell = Math.ceil(totalCountSell / PAGE_SIZE_SELL);
-
-  // total today coin sell
-  const totalToadyCoin = allSellToday.map((item) => Number(item.quantity));
-  const totalCoinsSoldToday = totalToadyCoin.reduce((sum, num) => sum + num, 0);
-  console.log(totalCoinsSoldToday);
-
-  //total today coin buy
-  const totalToadyCoinBuy = allBuyToday.map((item) => Number(item.quantity));
-  const totalCoinsBoughtToday = totalToadyCoinBuy.reduce(
-    (sum, num) => sum + num,
-    0
-  );
+  const refreshBuyToday = () => buyHandlers.loadTodaySummary(setBuyToday);
+  const refreshSellToday = () => sellHandlers.loadTodaySummary(setSellToday);
 
   useEffect(() => {
-    fetchTodayPricesSell(setTotalPriceSell);
-    getSalesDate(setAllSellToday);
-    fetchTodayPricesBuy(setTotalPriceBuy);
-    getSalesDateBuy(setAllBuyToday);
+    refreshBuyToday();
+    refreshSellToday();
   }, []);
   useEffect(() => {
     fetchOrdersBuy();
-  }, [pagebuy]);
+  }, [fetchOrdersBuy]);
   useEffect(() => {
     fetchOrdersSell();
-  }, [pageSell]);
+  }, [fetchOrdersSell]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime-orders")
+  useOrdersRealtime((event) => {
+    if (event.side === "buy") {
+      fetchOrdersBuy();
+      refreshBuyToday();
+    } else {
+      fetchOrdersSell();
+      refreshSellToday();
+    }
+  });
 
-      // listen to sell table
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-        },
-        (payload) => {
-          console.log("Sell change:", payload);
-          fetchOrdersSell();
-        }
-      )
+  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
+  const totalPagesSell = Math.ceil(totalCountSell / PAGE_SIZE_SELL);
+  const totalCoinsSoldToday = sellToday.quantity;
+  const totalCoinsBoughtToday = buyToday.quantity;
+  const totalPriceSell = sellToday.amount;
+  const totalPriceBuy = buyToday.amount;
 
-      // listen to buy table
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "buy",
-        },
-        (payload) => {
-          console.log("Buy change:", payload);
-          fetchOrdersBuy();
-        }
-      )
-
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [pagebuy, pageSell]);
   // ================= RENDER =================
   return (
     <div className="max-w-7xl mx-auto px-4 mt-6">
@@ -380,10 +331,7 @@ const OrdersMobile = () => {
                             setOrdersBuy
                           );
 
-                          if (deleted) {
-                            fetchTodayPricesBuy(setTotalPriceBuy);
-                            getSalesDateBuy(setAllBuyToday);
-                          }
+                          if (deleted) refreshBuyToday();
                         }}
                         className="flex-1 bg-red-500 text-white py-1 rounded-lg text-sm"
                       >
@@ -606,10 +554,7 @@ const OrdersMobile = () => {
                             setOrdersSell
                           );
 
-                          if (deleted) {
-                            fetchTodayPricesSell(setTotalPriceSell);
-                            getSalesDate(setAllSellToday);
-                          }
+                          if (deleted) refreshSellToday();
                         }}
                         className="flex-1 bg-red-500 text-white py-1 rounded-lg text-sm"
                       >

@@ -12,15 +12,14 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LogIn />} />
-      <Route element={<Layout />}>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Home />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/addOrder" element={<AddOrder />} />
         <Route path="/search" element={<Search />} />
