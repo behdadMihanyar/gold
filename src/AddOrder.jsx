@@ -80,7 +80,7 @@ const AddOrder = () => {
           <InputField
             label="تعداد"
             name="quantity"
-            type="number"
+            inputMode="numeric"
             value={formData.quantity}
             onChange={(e) => handleFormChange(e, setFormData)}
             required
@@ -181,7 +181,7 @@ const AddOrder = () => {
           <InputField
             label="تعداد"
             name="quantity"
-            type="number"
+            inputMode="numeric"
             value={formDataBuy.quantity}
             onChange={(e) => handleFormChange(e, setFormDataBuy)}
             required

@@ -7,6 +7,7 @@ import { pool } from "./db/pool.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { ordersRouter } from "./modules/orders/orders.routes.js";
+import { ratesRouter } from "./modules/rates/rates.routes.js";
 
 export function createApp() {
   const app = express();
@@ -28,6 +29,7 @@ export function createApp() {
 
   app.use("/api/auth", authRouter);
   app.use("/api/orders", ordersRouter);
+  app.use("/api/rates", ratesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

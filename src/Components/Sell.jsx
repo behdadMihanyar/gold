@@ -7,6 +7,7 @@ import persian_fa from "react-date-object/locales/persian_fa";
 import { ordersApi } from "../api/orders";
 import { useOrdersRealtime } from "../api/realtime";
 import { averagePrice } from "../utils/format";
+import { usePageClamp, pageCount } from "../utils/usePageClamp";
 import {
   handleCancel,
   handleDateChange,
@@ -84,7 +85,8 @@ const Sell = () => {
     ["sell"],
   );
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = pageCount(totalCount, PAGE_SIZE);
+  usePageClamp(page, setPage, totalPages);
   const filterCoin = (e) => setSearchValue(e.target.value);
   const totalCoinsSoldToday = todaySummary.quantity;
   const totalPrice = todaySummary.amount;
@@ -157,7 +159,7 @@ const Sell = () => {
             تعداد کل امروز: {totalCoinsSoldToday} سکه
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
-            مبلغ کل امروز : {totalPrice.toLocaleString()}ریال
+            مبلغ کل امروز : {totalPrice.toLocaleString()} ریال
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
             میانگین : {average} ریال
@@ -511,13 +513,13 @@ const Sell = () => {
             <GrLinkNext />
           </button>
 
-          <span>{totalPages === 0 ? page : `${page} از ${totalPages}`}</span>
+          <span>{`${page} از ${totalPages}`}</span>
 
           <button
-            disabled={page === totalPages}
+            disabled={page >= totalPages}
             onClick={() => setPage((prev) => prev + 1)}
             className={`p-2 rounded ${
-              page === totalPages
+              page >= totalPages
                 ? "opacity-40 cursor-not-allowed"
                 : "hover:bg-gray-200"
             }`}

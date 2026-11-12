@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import LogIn from "./LogIn";
 import Layout from "./layout/Layout";
@@ -26,6 +26,7 @@ function App() {
         <Route path="/sms" element={<Sms />} />
         <Route path="/home" element={<Home />} />
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

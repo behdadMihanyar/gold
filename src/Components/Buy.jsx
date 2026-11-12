@@ -7,6 +7,7 @@ import persian_fa from "react-date-object/locales/persian_fa";
 import { ordersApi } from "../api/orders";
 import { useOrdersRealtime } from "../api/realtime";
 import { averagePrice } from "../utils/format";
+import { usePageClamp, pageCount } from "../utils/usePageClamp";
 import {
   buyHandlers,
   handleCancel,
@@ -84,7 +85,8 @@ const Buy = () => {
     ["buy"],
   );
 
-  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
+  const totalPagesBuy = pageCount(totalCountBuy, PAGE_SIZE_BUY);
+  usePageClamp(pagebuy, setPagebuy, totalPagesBuy);
   const filterCoin = (e) => setSearchValue(e.target.value);
   const totalCoinsSoldToday = todaySummary.quantity;
   const totalPrice = todaySummary.amount;
@@ -140,7 +142,7 @@ const Buy = () => {
             تعداد کل امروز: {totalCoinsSoldToday} سکه
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
-            مبلغ کل امروز: {totalPrice.toLocaleString()}
+            مبلغ کل امروز: {totalPrice.toLocaleString()} ریال
           </h2>
           <h2 className="font-bold text-gray-600 mb-8 text-center bg-emerald-200 p-3 rounded-2xl ">
             میانگین : {average} ریال
@@ -498,14 +500,14 @@ const Buy = () => {
           </button>
 
           <span>
-            {totalPagesBuy === 0 ? pagebuy : `${pagebuy} از ${totalPagesBuy}`}
+            {`${pagebuy} از ${totalPagesBuy}`}
           </span>
 
           <button
-            disabled={pagebuy === totalPagesBuy}
+            disabled={pagebuy >= totalPagesBuy}
             onClick={() => setPagebuy((prev) => prev + 1)}
             className={`p-2 rounded ${
-              pagebuy === totalPagesBuy
+              pagebuy >= totalPagesBuy
                 ? "opacity-40 cursor-not-allowed"
                 : "hover:bg-gray-200"
             }`}

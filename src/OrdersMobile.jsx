@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { usePageClamp, pageCount } from "./utils/usePageClamp";
 import { useDataContext } from "./Context/DataContext.jsx";
 import { ordersApi } from "./api/orders";
 import { useOrdersRealtime } from "./api/realtime";
@@ -119,8 +120,10 @@ const OrdersMobile = () => {
     }
   });
 
-  const totalPagesBuy = Math.ceil(totalCountBuy / PAGE_SIZE_BUY);
-  const totalPagesSell = Math.ceil(totalCountSell / PAGE_SIZE_SELL);
+  const totalPagesBuy = pageCount(totalCountBuy, PAGE_SIZE_BUY);
+  const totalPagesSell = pageCount(totalCountSell, PAGE_SIZE_SELL);
+  usePageClamp(pagebuy, setPagebuy, totalPagesBuy);
+  usePageClamp(pageSell, setPageSell, totalPagesSell);
   const totalCoinsSoldToday = sellToday.quantity;
   const totalCoinsBoughtToday = buyToday.quantity;
   const totalPriceSell = sellToday.amount;
@@ -359,7 +362,7 @@ const OrdersMobile = () => {
             </span>
 
             <button
-              disabled={pagebuy === totalPagesBuy}
+              disabled={pagebuy >= totalPagesBuy}
               onClick={() => setPagebuy((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >
@@ -581,7 +584,7 @@ const OrdersMobile = () => {
             </span>
 
             <button
-              disabled={pageSell === totalPagesSell}
+              disabled={pageSell >= totalPagesSell}
               onClick={() => setPageSell((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-lg disabled:opacity-50"
             >

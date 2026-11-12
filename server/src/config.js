@@ -18,6 +18,8 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default(""),
   // Set to "false" only when the site is served over plain HTTP (no domain/SSL yet).
   COOKIE_SECURE: z.enum(["true", "false"]).optional(),
+  // brsapi.ir key for the gold/currency price box (free tier key by default).
+  BRSAPI_KEY: z.string().min(1).default("FreeOmyTOvQelQcZdcQwNrggWfbKJKTu"),
   ALLOW_SIGNUP: z
     .enum(["true", "false"])
     .default("false")
@@ -46,6 +48,7 @@ export const config = Object.freeze({
     .map((o) => o.trim())
     .filter(Boolean),
   allowSignup: env.ALLOW_SIGNUP,
+  brsapiKey: env.BRSAPI_KEY,
   cookieSecure: env.COOKIE_SECURE
     ? env.COOKIE_SECURE === "true"
     : env.NODE_ENV === "production",

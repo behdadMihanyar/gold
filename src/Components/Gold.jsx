@@ -8,28 +8,33 @@ import tala24 from "../img/tala24.png";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { request } from "../api/client";
 
 const Gold = () => {
   const [filterCoin, setFilterCoin] = useState([]);
   const [id, setId] = useState(0);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    let newArray = {};
-    try {
-      const getData = async () => {
-        const req = await fetch(
-          "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreeOmyTOvQelQcZdcQwNrggWfbKJKTu"
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await request("/rates");
+        if (cancelled) return;
+        setFilterCoin(
+          [...res.gold].reverse().map((item, index) => ({ ...item, id: index })),
         );
-        const res = await req.json();
-        newArray = res.gold.reverse().map((item, index) => ({
-          ...item,
-          id: index,
-        }));
-        setFilterCoin(newArray);
-      };
-      getData();
-    } catch (error) {
-      console.log("error fetching data", error.message);
-    }
+        setFailed(false);
+      } catch (error) {
+        console.error("error fetching prices", error.message);
+        if (!cancelled) setFailed(true);
+      }
+    };
+    load();
+    const timer = setInterval(load, 5 * 60_000); // refresh every 5 minutes
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, []);
   const newItems = filterCoin.filter(
     (item) => item.id === 1 || item.id === 6 || item.id === 7
@@ -45,6 +50,11 @@ const Gold = () => {
       <h1 className="text-center font-bold text-2xl bg-emerald-300 p-3 rounded-2xl shadow-md">
         {getToday}
       </h1>
+      {failed && newItems.length === 0 && (
+        <p className="text-center text-gray-500 text-sm mt-3">
+          قیمت‌های لحظه‌ای در حال حاضر در دسترس نیست.
+        </p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 mb-3">
         {newItems.map((para) => (
           <div

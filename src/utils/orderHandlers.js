@@ -83,15 +83,47 @@ export const handleCancel = (setEditingId, setCalendarVisible, setEditForm) => {
 };
 
 // ------------------------------------------------------------ API-backed ops
-const showError = (err) =>
-  toast.error(err?.message || "خطا در ارتباط با سرور", { position: "top-left" });
+const FIELD_LABELS = {
+  name: "نام",
+  quantity: "تعداد",
+  price: "نرخ",
+  date: "تاریخ",
+  status: "وضعیت",
+  delivery: "تحویل دهنده",
+  description: "توضیحات",
+};
+
+/** Turn an API error into a Persian message the user can act on. */
+function errorMessage(err) {
+  if (err?.status === 400 && err.details?.length) {
+    const fields = [...new Set(err.details.map((d) => FIELD_LABELS[d.field] || d.field))];
+    return `مقدار نامعتبر: ${fields.join("، ")}`;
+  }
+  if (err?.status === 401) return "نشست شما به پایان رسیده است. دوباره وارد شوید.";
+  if (err?.status === 404) return "این سفارش پیدا نشد (احتمالا حذف شده است).";
+  if (err?.status === 429) return "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید.";
+  if (err?.status >= 500) return "خطای سرور. دوباره تلاش کنید.";
+  return "خطا در ارتباط با سرور";
+}
+
+const showError = (err) => toast.error(errorMessage(err), { position: "top-left" });
+
+/** Client-side check before sending; returns a Persian message or null. */
+function validateOrder(form) {
+  if (!String(form.name ?? "").trim()) return "لطفا نام مشتری را وارد نمایید";
+  if (!(parseAmount(form.quantity) > 0)) return "لطفا تعداد را وارد نمایید";
+  if (!String(form.price ?? "").trim()) return "لطفا نرخ را وارد نمایید";
+  if (!form.date) return "لطفا تاریخ را وارد نمایید";
+  return null;
+}
 
 export function createOrderHandlers(side) {
   return {
     async handleSubmit(e, form, setForm) {
       e.preventDefault();
-      if (!form.date) {
-        toast.error("لطفا تاریخ را وارد نمایید", { position: "top-left" });
+      const problem = validateOrder(form);
+      if (problem) {
+        toast.error(problem, { position: "top-left" });
         return;
       }
       try {
@@ -104,8 +136,9 @@ export function createOrderHandlers(side) {
     },
 
     async handleUpdate(id, setEditingId, editForm, setRows, rows) {
-      if (!parseAmount(editForm.quantity)) {
-        toast.error("لطفا مقادیر مورد نظر را وارد کنید", { position: "top-left" });
+      const problem = validateOrder(editForm);
+      if (problem) {
+        toast.error(problem, { position: "top-left" });
         return;
       }
       try {

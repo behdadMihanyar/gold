@@ -16,8 +16,12 @@ const MobileLayout = ({ show, setShow }) => {
     <div>
       <div>
         <main className="flex-1 cursor-pointer">
-          <button className="top-4 p-3 absolute" onClick={handleLogout}>
-            <GrPowerShutdown color="black" size={30} />
+          <button
+            className="top-3 right-3 p-2 absolute z-30 bg-white/90 rounded-full shadow-md"
+            onClick={handleLogout}
+            aria-label="خروج"
+          >
+            <GrPowerShutdown color="black" size={26} />
           </button>
           <Outlet />
         </main>
@@ -25,10 +29,11 @@ const MobileLayout = ({ show, setShow }) => {
           {!show && (
             <div>
               <button
-                className="p-3 absolute top-4 left-0 z-50 cursor-pointer"
+                className="p-2 absolute top-3 left-3 z-50 cursor-pointer bg-white/90 rounded-full shadow-md"
                 onClick={() => setShow(true)}
+                aria-label="منو"
               >
-                <CiMenuBurger color="black" size={30} />
+                <CiMenuBurger color="black" size={26} />
               </button>
             </div>
           )}
@@ -41,6 +46,11 @@ const MobileLayout = ({ show, setShow }) => {
             <ul className="flex flex-col items-center justify-center space-y-4 text-2xl text-white">
               <li>
                 <NavLink to="/" onClick={() => setShow((prev) => !prev)}>
+                  خانه
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/orders" onClick={() => setShow((prev) => !prev)}>
                   سفارشات
                 </NavLink>
               </li>

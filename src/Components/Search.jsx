@@ -211,11 +211,11 @@ const Search = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-gray-700">قیمت:</span>
-                    <span>{item.price.toLocaleString()} تومان</span>
+                    <span>{item.price.toLocaleString()} ریال</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-gray-700">جمع کل:</span>
-                    <span>{item.total.toLocaleString()} تومان</span>
+                    <span>{item.total.toLocaleString()} ریال</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-gray-700">تاریخ:</span>
