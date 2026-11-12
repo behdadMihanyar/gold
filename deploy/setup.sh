@@ -17,6 +17,11 @@ set -euo pipefail
 APP_DIR=/opt/gold
 BRANCH=remove-supabase
 REPO=https://github.com/behdadMihanyar/gold
+# Mirrors used when github.com itself is unreachable (common from Iran).
+REPO_MIRRORS=(
+  https://kkgithub.com/behdadMihanyar/gold
+  https://hub.gitmirror.com/https://github.com/behdadMihanyar/gold
+)
 APP_USER=gold
 NODE_MAJOR=22
 
@@ -74,15 +79,29 @@ fi
 # ---------------------------------------------------------------- code
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER"
 
+# Try github.com first; if it's blocked, fall through to a mirror.
+pick_repo() {
+  for u in "$REPO" "${REPO_MIRRORS[@]}"; do
+    if GIT_TERMINAL_PROMPT=0 timeout 25 git ls-remote "$u" "$BRANCH" >/dev/null 2>&1; then
+      echo "$u"; return 0
+    fi
+    log "Can't reach $u — trying next"
+  done
+  die "Can't reach github.com or any mirror. Check your internet connection and try again."
+}
+ACTIVE_REPO=$(pick_repo)
+log "Using $ACTIVE_REPO"
+
 if [ -d "$APP_DIR/.git" ]; then
   log "Updating code in $APP_DIR"
   git config --global --add safe.directory "$APP_DIR"
+  git -C "$APP_DIR" remote set-url origin "$ACTIVE_REPO"
   git -C "$APP_DIR" fetch origin "$BRANCH"
   git -C "$APP_DIR" checkout -q "$BRANCH"
   git -C "$APP_DIR" reset -q --hard "origin/$BRANCH"
 else
-  log "Cloning $REPO ($BRANCH) into $APP_DIR"
-  git clone -b "$BRANCH" "$REPO" "$APP_DIR"
+  log "Cloning $ACTIVE_REPO ($BRANCH) into $APP_DIR"
+  git clone -b "$BRANCH" "$ACTIVE_REPO" "$APP_DIR"
 fi
 
 # ---------------------------------------------------------------- database
