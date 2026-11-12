@@ -117,7 +117,7 @@ if [ ! -f "$ENV_FILE" ]; then
     runuser -u postgres -- psql -qc "CREATE ROLE gold WITH LOGIN PASSWORD '$DB_PASS'"
   fi
   runuser -u postgres -- psql -tAc "SELECT 1 FROM pg_database WHERE datname='gold'" | grep -q 1 ||
-    runuser -u postgres -- createdb -O gold gold
+    runuser -u postgres -- createdb -O gold -E UTF8 -T template0 --locale=C.UTF-8 gold
 
   log "Writing $ENV_FILE"
   cat >"$ENV_FILE" <<EOF
@@ -132,6 +132,12 @@ ALLOW_SIGNUP=false
 EOF
 fi
 chmod 600 "$ENV_FILE"
+
+DB_ENC=$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname='gold'")
+if [ "$DB_ENC" != "UTF8" ]; then
+  printf '\n\033[1;31mWARNING: database "gold" uses encoding %s, not UTF8.\033[0m\n' "$DB_ENC"
+  echo "Persian name search may not match correctly. Ask for help converting it."
+fi
 
 # ---------------------------------------------------------------- build
 log "Installing dependencies and building the frontend"

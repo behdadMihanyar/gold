@@ -28,7 +28,7 @@ ordersRouter.get(
   },
 );
 
-// GET /api/orders/:side/summary?date=   → { count, quantity, amount }
+// GET /api/orders/:side/summary?date=&q=   → { count, quantity, amount }
 ordersRouter.get(
   "/:side/summary",
   validate(sideParams, "params"),

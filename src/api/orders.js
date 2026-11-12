@@ -38,8 +38,8 @@ export const ordersApi = {
     return { ...res, data: res.data.map(fromApi) };
   },
   /** → { count, quantity, amount } */
-  summary: (side, { date } = {}) =>
-    request(`/orders/${side}/summary`, { query: { date } }),
+  summary: (side, { date, q } = {}) =>
+    request(`/orders/${side}/summary`, { query: { date, q } }),
   create: (side, form) =>
     request(`/orders/${side}`, { method: "POST", body: toApi(form) }).then(fromApi),
   update: (side, id, form) =>

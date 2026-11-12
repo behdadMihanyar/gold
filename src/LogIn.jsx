@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 const LogIn = () => {
   //States
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin] = useState(true); // sign-up is disabled
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -115,16 +115,7 @@ const LogIn = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600 mt-6">
-          {isLogin ? "حساب کاربری ندارید؟" : "حساب کاربری دارید؟"}
-
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 font-medium hover:underline ml-1"
-          >
-            {isLogin ? "ایجاد حساب کاربری" : "ورود کاربران"}
-          </button>
-        </p>
+        {/* Public sign-up is disabled; accounts are created on the server. */}
       </div>
     </div>
   );

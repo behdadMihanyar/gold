@@ -72,4 +72,5 @@ export const listOrdersQuery = z.object({
 
 export const summaryQuery = z.object({
   date: z.preprocess(blankToUndefined, jalaliDate.optional()),
+  q: z.preprocess(blankToUndefined, z.string().trim().max(100).optional()),
 });

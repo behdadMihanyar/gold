@@ -42,7 +42,10 @@ function buildFilter(side, { date, q } = {}) {
   }
   if (q) {
     params.push(`%${escapeLike(q)}%`);
-    clauses.push(`name ILIKE $${params.length}`);
+    // Treat Arabic ي/ك and Persian ی/ک as the same letter.
+    clauses.push(
+      `translate(name, 'يك', 'یک') ILIKE translate($${params.length}, 'يك', 'یک')`,
+    );
   }
   return { where: clauses.join(" AND "), params };
 }
@@ -65,8 +68,8 @@ export async function listOrders(side, { page, pageSize, date, q }) {
   return { data: rows.rows.map(toOrder), total: count.rows[0].total };
 }
 
-export async function summarize(side, { date } = {}) {
-  const { where, params } = buildFilter(side, { date });
+export async function summarize(side, { date, q } = {}) {
+  const { where, params } = buildFilter(side, { date, q });
   const { rows } = await query(
     `SELECT count(*)::int                 AS count,
             coalesce(sum(quantity), 0)::bigint AS quantity,

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import plus from "../img/plus.svg";
 import name from "../img/searchbyname.svg";
 import date from "../img/searchbydate.svg";
-import close from "../img/close.svg";
+import NameSearch from "./NameSearch";
 import calendar from "../img/calendar.svg";
 import { buyHandlers, sellHandlers } from "../utils/orderHandlers";
 import { useOrdersRealtime } from "../api/realtime";
@@ -71,34 +71,9 @@ const Home = () => {
           </button>
         </header>
 
-        {/* Search Overlay Modal */}
+        {/* Search-by-name modal */}
         {showNameSearch && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-slate-800 border border-slate-700 w-full max-w-md p-6 rounded-3xl shadow-2xl relative transform transition-all scale-100">
-              <button
-                onClick={() => setShowNameSearch(false)}
-                className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors"
-              >
-                <img src={close} className="w-6 h-6" alt="Close" />
-              </button>
-
-              <h3 className="text-xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-                جستجوی مشتری
-              </h3>
-
-              <div className="flex flex-col gap-4">
-                <input
-                  type="text"
-                  placeholder="نام مشتری را وارد کنید..."
-                  className="w-full bg-slate-900/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  autoFocus
-                />
-                <button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-xl shadow-lg transform transition hover:-translate-y-1">
-                  جست و جو
-                </button>
-              </div>
-            </div>
-          </div>
+          <NameSearch onClose={() => setShowNameSearch(false)} />
         )}
 
         {/* Main Content */}
