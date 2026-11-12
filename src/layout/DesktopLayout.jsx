@@ -1,5 +1,5 @@
 import React from "react";
-import logout from "../img/logout.png";
+import logoutIcon from "../img/logout.png";
 import logo from "../img/logo.png";
 import { useAuth } from "../Context/AuthContext";
 import order from "../img/order.svg";
@@ -19,7 +19,6 @@ const DesktopLayout = () => {
     navigate("/login", { replace: true });
   };
   const homeRoute = useLocation().pathname;
-  console.log(homeRoute);
   return (
     <div>
       <div className="flex h-screen overflow-hidden ">
@@ -118,7 +117,7 @@ const DesktopLayout = () => {
               onClick={handleLogout}
               className="mt-auto text-white py-2 px-4 rounded flex justify-center hover:scale-110 cursor-pointer transition duration-150"
             >
-              <img src={logout} width={50} height={50} />
+              <img src={logoutIcon} alt="خروج" title="خروج" width={50} height={50} />
             </button>
           </nav>
         </aside>

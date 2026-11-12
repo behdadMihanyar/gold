@@ -5,11 +5,33 @@ import name from "../img/searchbyname.svg";
 import date from "../img/searchbydate.svg";
 import close from "../img/close.svg";
 import calendar from "../img/calendar.svg";
+import { buyHandlers, sellHandlers } from "../utils/orderHandlers";
+import { useOrdersRealtime } from "../api/realtime";
+import { averagePrice } from "../utils/format";
+
+const EMPTY_SUMMARY = { count: 0, quantity: 0, amount: 0 };
 const Home = () => {
   const navigate = useNavigate();
   const [showNameSearch, setShowNameSearch] = useState(false);
   const [showCal, setShowCal] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
+  const [sellToday, setSellToday] = useState(EMPTY_SUMMARY);
+  const [buyToday, setBuyToday] = useState(EMPTY_SUMMARY);
+
+  // Today's totals (same server summary the Orders page uses).
+  const refreshSell = () => sellHandlers.loadTodaySummary(setSellToday);
+  const refreshBuy = () => buyHandlers.loadTodaySummary(setBuyToday);
+
+  useEffect(() => {
+    refreshSell();
+    refreshBuy();
+  }, []);
+
+  // Keep the boxes live when anyone adds, edits or deletes an order.
+  useOrdersRealtime((event) => {
+    if (event.side === "sell") refreshSell();
+    else refreshBuy();
+  });
 
   // Set current date in Persian format
   useEffect(() => {
@@ -125,12 +147,12 @@ const Home = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { title: "فروش امروز", val: "xxxxxxxxx" },
-              { title: "میانگین فروش امروز", val: "xxxxxxxxx" },
-              { title: "خرید امروز", val: "xxxxxxxxx" },
-              { title: "میانگین خرید امروز", val: "xxxxxxxxx" },
-              { title: "سکه های فروخته شده", val: "xxxxxxxxx" },
-              { title: "سکه های خریداری شده", val: "xxxxxxxxx" },
+              { title: "فروش امروز", val: `${Number(sellToday.amount).toLocaleString()} ریال` },
+              { title: "میانگین فروش امروز", val: `${averagePrice(sellToday.amount, sellToday.quantity)} ریال` },
+              { title: "خرید امروز", val: `${Number(buyToday.amount).toLocaleString()} ریال` },
+              { title: "میانگین خرید امروز", val: `${averagePrice(buyToday.amount, buyToday.quantity)} ریال` },
+              { title: "سکه های فروخته شده", val: `${Number(sellToday.quantity).toLocaleString()} سکه` },
+              { title: "سکه های خریداری شده", val: `${Number(buyToday.quantity).toLocaleString()} سکه` },
             ].map((item, index) => (
               <div
                 key={index}

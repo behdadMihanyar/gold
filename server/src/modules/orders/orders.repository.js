@@ -74,7 +74,9 @@ export async function summarize(side, { date } = {}) {
        FROM orders WHERE ${where}`,
     params,
   );
-  return rows[0];
+  // bigint comes back from pg as a string; the sums stay far below 2^53.
+  const { count, quantity, amount } = rows[0];
+  return { count, quantity: Number(quantity), amount: Number(amount) };
 }
 
 export async function findOrder(side, id) {
