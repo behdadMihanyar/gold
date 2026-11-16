@@ -4,6 +4,8 @@ Install: python -m pip install playwright
          python -m playwright install chromium
 Run:     python collector.py
 Keep this program and its browser open. A SQLite outbox retries every update.
+On a headless server, see deploy/collector-setup.sh to run this continuously under
+a virtual display with a systemd service, plus a one-time VNC login.
 """
 import asyncio
 import json
@@ -22,7 +24,13 @@ from urllib.parse import urlsplit
 CONFIG = {"endpoint": os.environ.get("ZARABGOLD_ENDPOINT", ""), "token": ""}
 SOURCE = "https://www.hanzaeigold.ir"
 IDS = {52, 57, 58, 60, 65, 66, 67, 75, 76, 89, 90}
-DATA_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "ZarabGoldWordPressRelay"
+DATA_DIR = Path(os.environ.get("ZARABGOLD_DATA_DIR") or os.environ.get("LOCALAPPDATA", str(Path.home()))) / "ZarabGoldWordPressRelay"
+# Chromium's persistent profile (cookies, localStorage). Logging in to hanzaeigold.ir
+# here is a one-time step — the session survives restarts and server reboots.
+PROFILE_DIR = DATA_DIR / "chrome-profile"
+# Headless Chromium is easy for sites to detect and block; on a server, run Chromium
+# normally (headless=False) under a virtual display (Xvfb) instead — see deploy/collector-setup.sh.
+HEADLESS = os.environ.get("ZARABGOLD_HEADLESS", "false").lower() == "true"
 
 def receiver_endpoint(config):
     # Older WordPress downloads inserted JSON slash escapes into Python literals.
@@ -129,11 +137,16 @@ async def main():
                 enqueue(data)
                 print("Price update queued:", data["products"][0]["id"], flush=True)
         ws.on("framereceived", received)
+    PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
-        context = await browser.new_context()
+        # A persistent context keeps the hanzaeigold.ir login across restarts: log in once
+        # (see deploy/collector-setup.sh), and every later run reuses that same browser profile.
+        context = await p.chromium.launch_persistent_context(
+            str(PROFILE_DIR), headless=HEADLESS,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
         context.on("page", lambda page: page.on("websocket", attach))
-        page = await context.new_page()
+        page = context.pages[0] if context.pages else await context.new_page()
         sender_task = asyncio.create_task(sender())
         ticks = 0
         last_snapshot = None
@@ -169,7 +182,7 @@ async def main():
         finally:
             sender_task.cancel()
             await asyncio.gather(sender_task, return_exceptions=True)
-            await browser.close()
+            await context.close()
             conn.close()
 
 if __name__ == "__main__":

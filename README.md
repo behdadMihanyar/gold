@@ -102,6 +102,20 @@ ZARABGOLD_RECEIVER_KEY=<PRICE_RELAY_KEY from server/.env> python tools/zarabgold
 Afterwards open **Prices** and, for each product, pick its collector id from the list.
 The key travels unencrypted until the site has a domain and SSL — add them soon.
 
+#### Running it continuously on the server instead of a PC
+
+`bash deploy/collector-setup.sh` (run once, after `deploy/setup.sh`) installs the
+collector as a systemd service (`gold-collector`) under a virtual display
+(`gold-display`), both restarting automatically on crash or reboot. It keeps its
+hanzaeigold.ir login in a browser profile on disk, so you only log in once — the
+script prints exact steps for a one-time login over an SSH-tunnelled VNC session
+(`gold-collector-login`), since the server has no monitor.
+
+```
+systemctl status gold-collector     # running?
+journalctl -u gold-collector -f     # live log
+```
+
 ## Moving your data off Supabase
 
 The import script reads straight from the old Supabase Postgres database and
