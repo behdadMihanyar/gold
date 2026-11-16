@@ -118,6 +118,19 @@ systemctl status gold-collector     # running?
 journalctl -u gold-collector -f     # live log
 ```
 
+Once logged in it runs unattended:
+
+* Every price change Hanzaei pushes over its websocket is forwarded at once (plus a full
+  snapshot every 30 s as a safety net); the customer board updates live via Socket.IO.
+* Hanzaei products are linked to ours automatically by name (word order, digit script and
+  ي/ك don't matter; ambiguous names are skipped). Anything left over can be picked by name
+  on the **Prices** page.
+* If live prices stop for 90 s the page is reloaded (never while someone is using the
+  Collector page); if the browser stops answering for a minute the service restarts it.
+  It also restarts once a day and is capped at 2 GB of memory. Logins survive all of this.
+* If Hanzaei itself logs the account out, customers see "prices not up to date" and can't
+  send requests until an admin logs in again on the Collector page.
+
 ## Moving your data off Supabase
 
 The import script reads straight from the old Supabase Postgres database and

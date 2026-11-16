@@ -1,6 +1,7 @@
 import { withTransaction } from "../../db/pool.js";
 import { emitPricesChanged } from "../../realtime/events.js";
 import { getFeedState, toProduct } from "../products/products.service.js";
+import { autoMapByName } from "./automap.js";
 import { normalizePrice } from "./prices.schemas.js";
 
 const PRODUCT_COLUMNS = `id, code, name, group_name, group_order, sort_order, unit,
@@ -40,6 +41,10 @@ export async function applyIngest(body) {
       return [];
     }
 
+    // New collector ids whose names match a product get linked before prices apply,
+    // so the first snapshot after login fills the board without manual mapping.
+    await autoMapByName(db, body.products ?? []);
+
     const updated = [];
     for (const item of body.products ?? []) {
       const buy = normalizePrice(item.buy);
@@ -51,15 +56,16 @@ export async function applyIngest(body) {
       if (!setBuy && !setSell) continue;
 
       const feedRow = await db.query(
-        `INSERT INTO price_feed_items (source_id, buy_price, sell_price, seen_at)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO price_feed_items (source_id, buy_price, sell_price, seen_at, name)
+         VALUES ($1, $2, $3, $4, $7)
          ON CONFLICT (source_id) DO UPDATE SET
            buy_price  = CASE WHEN $5 THEN EXCLUDED.buy_price  ELSE price_feed_items.buy_price  END,
            sell_price = CASE WHEN $6 THEN EXCLUDED.sell_price ELSE price_feed_items.sell_price END,
-           seen_at    = EXCLUDED.seen_at
+           seen_at    = EXCLUDED.seen_at,
+           name       = COALESCE(EXCLUDED.name, price_feed_items.name)
          WHERE price_feed_items.seen_at <= EXCLUDED.seen_at
          RETURNING buy_price, sell_price`,
-        [item.id, buy ?? null, sell ?? null, at, setBuy, setSell],
+        [item.id, buy ?? null, sell ?? null, at, setBuy, setSell, item.name ?? null],
       );
       if (!feedRow.rows[0]) continue; // an older event than what we already have
 

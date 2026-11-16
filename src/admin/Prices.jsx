@@ -33,7 +33,7 @@ function Row({ p, unmapped, onSaved }) {
         <label className="gp-field">شناسهٔ کالکتور<select value={src} onChange={(e) => { setSrc(e.target.value); save({ sourceId: e.target.value ? Number(e.target.value) : null }); }}>
           <option value="">بدون اتصال (دستی)</option>
           {p.sourceId && <option value={p.sourceId}>{toPersianDigits(p.sourceId)} (فعلی)</option>}
-          {unmapped.map((u) => <option key={u.sourceId} value={u.sourceId}>{toPersianDigits(u.sourceId)} — {fmtRial(u.buyPrice)} / {fmtRial(u.sellPrice)}</option>)}
+          {unmapped.map((u) => <option key={u.sourceId} value={u.sourceId}>{u.name ? `${u.name} — ` : ""}{toPersianDigits(u.sourceId)} — {fmtRial(u.buyPrice)} / {fmtRial(u.sellPrice)}</option>)}
         </select></label>
       </div>
       <div className="gp-actions">
@@ -60,7 +60,7 @@ export default function Prices() {
           : "کالکتوری متصل نشده است؛ قیمت‌ها را دستی وارد کنید."}
       </p>
       {board.unmappedFeedItems.length > 0 && (
-        <div className="gp-banner warn">{toPersianDigits(board.unmappedFeedItems.length)} شناسه از کالکتور هنوز به محصولی وصل نشده است؛ در هر محصول از فهرست «شناسهٔ کالکتور» انتخاب کنید (با مقایسهٔ قیمت‌ها).</div>
+        <div className="gp-banner warn">{toPersianDigits(board.unmappedFeedItems.length)} شناسه از کالکتور به‌طور خودکار به محصولی وصل نشد (نام‌ها یکسان نبود)؛ در محصول مربوط از فهرست «شناسهٔ کالکتور» انتخاب کنید.</div>
       )}
       {board.products.map((p) => <Row key={p.id} p={p} unmapped={board.unmappedFeedItems} onSaved={load} />)}
     </div>

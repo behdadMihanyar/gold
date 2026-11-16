@@ -13,11 +13,15 @@ set -euo pipefail
 
 APP_DIR=/opt/gold
 APP_USER=gold
-# Pick a display number nothing else on this (possibly shared) server is already using.
-DISPLAY_NUM=99
-while [ -e "/tmp/.X11-unix/X$DISPLAY_NUM" ] || [ -e "/tmp/.X$DISPLAY_NUM-lock" ]; do
-  DISPLAY_NUM=$((DISPLAY_NUM + 1))
-done
+# Keep the display number from an earlier run; otherwise pick one nothing else on this
+# (possibly shared) server is already using.
+DISPLAY_NUM=$(grep -oE 'Xvfb :[0-9]+' /etc/systemd/system/gold-display.service 2>/dev/null | grep -oE '[0-9]+$' || true)
+if [ -z "$DISPLAY_NUM" ]; then
+  DISPLAY_NUM=99
+  while [ -e "/tmp/.X11-unix/X$DISPLAY_NUM" ] || [ -e "/tmp/.X$DISPLAY_NUM-lock" ]; do
+    DISPLAY_NUM=$((DISPLAY_NUM + 1))
+  done
+fi
 VNC_PORT=5999 # only listens on 127.0.0.1 — reach it through an SSH tunnel, never expose it
 
 log()  { printf '\n\033[1;33m==> %s\033[0m\n' "$*"; }
@@ -60,6 +64,7 @@ log "Installing systemd service gold-display (Xvfb :$DISPLAY_NUM)"
 cat >/etc/systemd/system/gold-display.service <<EOF
 [Unit]
 Description=Virtual display for the Gold price collector
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -80,8 +85,10 @@ log "Installing systemd service gold-collector"
 cat >/etc/systemd/system/gold-collector.service <<EOF
 [Unit]
 Description=Gold price collector (hanzaeigold.ir -> dashboard)
-After=network.target gold-display.service
-Requires=gold-display.service
+After=network-online.target gold-display.service
+Wants=network-online.target gold-display.service
+# Keep retrying forever, however often it fails (systemd would otherwise give up).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -95,6 +102,10 @@ Environment=ZARABGOLD_CHROMIUM_EXECUTABLE=$CHROMIUM_BIN
 ExecStart=$APP_DIR/tools/.venv/bin/python zarabgold-collector.py
 Restart=always
 RestartSec=5
+# Start a fresh browser once a day (the login is kept on disk) so memory can't creep up,
+# and never let Chromium take memory the dashboard needs.
+RuntimeMaxSec=1d
+MemoryMax=2G
 
 [Install]
 WantedBy=multi-user.target
@@ -121,8 +132,9 @@ EOF
 chmod +x /usr/local/bin/gold-collector-login
 
 systemctl daemon-reload
-systemctl enable --now gold-display
-systemctl enable --now gold-collector
+systemctl enable gold-display gold-collector >/dev/null
+systemctl restart gold-display
+systemctl restart gold-collector
 
 log "Done! The collector is running (and will restart on crash or reboot)."
 cat <<MSG

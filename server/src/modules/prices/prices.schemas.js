@@ -29,6 +29,9 @@ export const ingestBody = z.object({
     .array(
       z.object({
         id: z.coerce.number().int().positive(),
+        // Product name as shown on the source board (snapshots only); used to link
+        // collector ids to our products automatically.
+        name: z.string().trim().max(120).optional(),
         buy: price,
         sell: price,
       }),

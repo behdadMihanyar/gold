@@ -85,13 +85,14 @@ export async function getBoard({ admin = false } = {}) {
     // Feed items nobody has mapped to a product yet, so the admin can match them
     // by their prices.
     const unmapped = await query(
-      `SELECT source_id, buy_price, sell_price, seen_at
+      `SELECT source_id, name, buy_price, sell_price, seen_at
          FROM price_feed_items
         WHERE source_id NOT IN (SELECT source_id FROM products WHERE source_id IS NOT NULL)
         ORDER BY source_id`,
     );
     board.unmappedFeedItems = unmapped.rows.map((r) => ({
       sourceId: r.source_id,
+      name: r.name ?? null,
       buyPrice: r.buy_price ?? null,
       sellPrice: r.sell_price ?? null,
       seenAt: r.seen_at,

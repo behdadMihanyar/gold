@@ -41,12 +41,17 @@ CHROMIUM_EXECUTABLE = os.environ.get("ZARABGOLD_CHROMIUM_EXECUTABLE") or None
 # Local control port used by the dashboard's admin "Collector" page to show this browser
 # and click/type into it (for the one-time hanzaeigold.ir login). 127.0.0.1 only; 0 = off.
 CONTROL_PORT = int(os.environ.get("ZARABGOLD_CONTROL_PORT", "4100"))
+# Watchdog (seconds): reload the price page when live prices have been down this long,
+# at most this often, and not within this long of anyone using the admin Collector page.
+WATCHDOG_RELOAD_AFTER = 90
+WATCHDOG_RELOAD_EVERY = 180
+WATCHDOG_QUIET_AFTER_CONTROL = 600
 # Keys the admin page may press; anything else is refused.
 ALLOWED_KEYS = {"Enter", "Tab", "Backspace", "Delete", "Escape", "ArrowUp", "ArrowDown",
                 "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"}
 
 
-def start_control_server(loop, current_page, status, token, port):
+def start_control_server(loop, current_page, status, token, port, activity):
     """Tiny HTTP API so the dashboard (admin only, via its own API) can drive this browser.
 
     GET  /state       {url, title, width, height, loggedIn, connected, rows, lastCheck}
@@ -80,6 +85,7 @@ def start_control_server(loop, current_page, status, token, port):
         def authorized(self):
             given = self.headers.get("X-Qasr-Relay-Key", "")
             if hmac.compare_digest(given.encode(), token.encode()):
+                activity["at"] = loop.time()  # someone is using the admin Collector page
                 return True
             self.json(401, {"error": "unauthorized"})
             return False
@@ -258,6 +264,7 @@ async def main():
         page = context.pages[0] if context.pages else await context.new_page()
         sender_task = asyncio.create_task(sender())
         status = {"loggedIn": False, "connected": False, "rows": 0, "lastCheck": None}
+        activity = {"at": -1e9}
         control = None
         if CONTROL_PORT:
             def current_page():
@@ -265,7 +272,7 @@ async def main():
                 open_pages = [pg for pg in context.pages if not pg.is_closed()]
                 return open_pages[-1] if open_pages else page
             try:
-                control = start_control_server(asyncio.get_running_loop(), current_page, status, token, CONTROL_PORT)
+                control = start_control_server(asyncio.get_running_loop(), current_page, status, token, CONTROL_PORT, activity)
                 print("Control page ready for the dashboard (127.0.0.1:%d)." % CONTROL_PORT, flush=True)
             except OSError as error:
                 print("Control server not started:", error, flush=True)
@@ -277,13 +284,32 @@ async def main():
                 await page.goto(SOURCE, wait_until="domcontentloaded", timeout=60000)
             except Exception:
                 print("Source navigation did not finish. Open https://www.hanzaeigold.ir in this browser and log in; the collector is still running.", flush=True)
+            loop = asyncio.get_running_loop()
+            last_connected = loop.time()
+            last_reload = loop.time()
+            failures = 0
             while not page.is_closed():
                 await asyncio.sleep(10)
                 try:
                     # Read price text and non-secret connection state only.
                     view = await page.evaluate("""() => ({
                       connected: !!window.Echo?.connector?.pusher?.allChannels().some(c => c.name.startsWith('private-Products.') && c.subscribed) && window.Echo?.connector?.pusher?.connection?.state === 'connected',
-                      rows: Array.from(document.querySelectorAll('[id^="product-card-"]')).filter(e => /^product-card-\\d+$/.test(e.id)).map(e => ({id: Number(e.id.split('-').pop()), values: Array.from(e.querySelectorAll('a')).map(a => a.textContent.trim())}))
+                      rows: Array.from(document.querySelectorAll('[id^="product-card-"]')).filter(e => /^product-card-\\d+$/.test(e.id)).map(e => {
+                        const values = Array.from(e.querySelectorAll('a')).map(a => a.textContent.trim());
+                        // The product's name: the card's first text outside the price links that
+                        // isn't a number or a column label.
+                        const texts = [];
+                        const walk = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+                        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+                          if (n.parentElement && n.parentElement.closest('a')) continue;
+                          const t = n.textContent.replace(/\\s+/g, ' ').trim();
+                          if (t) texts.push(t);
+                        }
+                        const name = texts.find(t => t.length <= 120 &&
+                          !/^[\\d\\u06F0-\\u06F9\\u0660-\\u0669\\u066C,.\\s]+$/.test(t) &&
+                          !['خرید', 'فروش', 'ندارید', 'قیمت خرید', 'قیمت فروش', 'ریال', 'تومان'].includes(t)) || null;
+                        return {id: Number(e.id.split('-').pop()), values, name};
+                      })
                     })""")
                     status.update(connected=bool(view["connected"]), rows=len(view["rows"]),
                                   loggedIn=bool(view["rows"]) or bool(view["connected"]),
@@ -293,7 +319,8 @@ async def main():
                             digits = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
                             cleaned = ''.join(c for c in digits if c.isdigit())
                             return int(cleaned) if cleaned else None
-                        rows = [{"id":r["id"], "buy":amount(r["values"][0]), "sell":amount(r["values"][1])}
+                        rows = [{"id":r["id"], "buy":amount(r["values"][0]), "sell":amount(r["values"][1]),
+                                 **({"name": r["name"][:120]} if r.get("name") else {})}
                                 for r in view["rows"] if r["id"] in IDS and len(r["values"]) == 2]
                         snapshot = json.dumps(rows, sort_keys=True)
                         if rows and snapshot != last_snapshot:
@@ -301,8 +328,28 @@ async def main():
                             last_snapshot = snapshot
                     enqueue({"kind":"heartbeat", "eventId":str(uuid.uuid4()), "connected":bool(view["connected"])})
                     ticks += 1
+                    failures = 0
+                    now = loop.time()
+                    if view["connected"]:
+                        last_connected = now
+                    elif (now - last_connected > WATCHDOG_RELOAD_AFTER
+                          and now - last_reload > WATCHDOG_RELOAD_EVERY
+                          and now - activity["at"] > WATCHDOG_QUIET_AFTER_CONTROL):
+                        # Live prices stopped (network blip, socket dropped, site restarted):
+                        # reload the page. Never while someone is using the admin Collector page.
+                        print("Live connection lost; reloading the price page.", flush=True)
+                        last_reload = now
+                        try:
+                            await page.reload(wait_until="domcontentloaded", timeout=60000)
+                        except Exception:
+                            pass
                 except Exception:
                     enqueue({"kind":"heartbeat", "eventId":str(uuid.uuid4()), "connected":False})
+                    failures += 1
+                    if failures >= 6:
+                        # The browser stopped answering for a minute: exit so systemd starts a fresh one.
+                        print("Browser not responding; exiting so the service restarts it.", flush=True)
+                        raise SystemExit(1)
         finally:
             if control:
                 control.shutdown()
