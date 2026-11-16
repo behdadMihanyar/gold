@@ -2,21 +2,25 @@ import jwt from "jsonwebtoken";
 import { config } from "../../config.js";
 
 export function signSession(user) {
-  return jwt.sign({ email: user.email }, config.jwt.secret, {
+  return jwt.sign({}, config.jwt.secret, {
     subject: user.id,
     expiresIn: config.jwt.expiresIn,
     algorithm: "HS256",
   });
 }
 
-/** Returns { id, email } or null if the token is missing/invalid/expired. */
+/**
+ * Returns { id } or null if the token is missing/invalid/expired. Role and
+ * account status are NOT stored in the token: requireAuth reads them from the
+ * database on every request, so disabling an account takes effect immediately.
+ */
 export function verifySession(token) {
   if (!token) return null;
   try {
     const payload = jwt.verify(token, config.jwt.secret, {
       algorithms: ["HS256"],
     });
-    return { id: payload.sub, email: payload.email };
+    return payload.sub ? { id: payload.sub } : null;
   } catch {
     return null;
   }

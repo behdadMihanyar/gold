@@ -33,3 +33,19 @@ export function normalizeJalaliDate(value) {
   if (y < 1300 || y > 1600 || m < 1 || m > 12 || d < 1 || d > 31) return null;
   return `${y}/${String(m).padStart(2, "0")}/${String(d).padStart(2, "0")}`;
 }
+
+/**
+ * Parse a quantity such as 2, "2.5", "۲٫۵" (Persian decimal separator) into a
+ * number with at most 3 decimals. Returns NaN for anything else — notably no
+ * thousands separators, so "1,000" is rejected rather than guessed at.
+ */
+export function parseQuantity(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : NaN;
+  const text = toLatinDigits(value ?? "").trim().replace("٫", ".");
+  return /^\d+(\.\d{1,3})?$/.test(text) ? Number(text) : NaN;
+}
+
+/** Escape LIKE wildcards so user input matches literally, then wrap for "contains". */
+export function likeContains(text) {
+  return `%${String(text).replace(/[\\%_]/g, "\\$&")}%`;
+}

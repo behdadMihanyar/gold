@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/requireAuth.js";
+import { requireRole } from "../../middleware/requireRole.js";
 import { validate } from "../../middleware/validate.js";
 import {
   createOrderBody,
@@ -13,7 +14,8 @@ import * as service from "./orders.service.js";
 
 export const ordersRouter = Router();
 
-ordersRouter.use(requireAuth);
+// The ledger is the shop's private books: admins only, never customers.
+ordersRouter.use(requireAuth, requireRole("admin"));
 
 // GET /api/orders/:side?page=&pageSize=&date=&q=
 ordersRouter.get(
