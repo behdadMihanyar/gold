@@ -114,7 +114,9 @@ echo "Reach this from your own computer with:"
 echo "  ssh -L $VNC_PORT:localhost:$VNC_PORT root@$IP"
 echo "Then point a VNC viewer at localhost:$VNC_PORT (no password)."
 echo "Log in to hanzaeigold.ir normally in that window, then press Ctrl+C here."
-exec x11vnc -display :$DISPLAY_NUM -localhost -rfbport $VNC_PORT -nopw -forever
+# -noshm: Xvfb runs as the $APP_USER user, but this helper usually runs as root — different
+# users can't share the X server's MIT-SHM memory segment, so skip that optimization.
+exec x11vnc -display :$DISPLAY_NUM -localhost -rfbport $VNC_PORT -nopw -forever -noshm
 EOF
 chmod +x /usr/local/bin/gold-collector-login
 
