@@ -15,7 +15,7 @@ describe("collector snapshot links products by name (database)", { skip: URL ? f
     ingest = await import("../src/modules/prices/ingest.service.js");
     ({ pool } = await import("../src/db/pool.js"));
     events = (await import("../src/realtime/events.js")).events;
-    await pool.query("UPDATE products SET source_id = NULL, buy_price = NULL, sell_price = NULL");
+    await pool.query("UPDATE products SET source_id = NULL, buy_price = NULL, sell_price = NULL, buy_adjust = 0, sell_adjust = 0");
     await pool.query("DELETE FROM price_feed_items");
     // An admin already linked this one by hand; the collector must not change it.
     await pool.query("UPDATE products SET source_id = 900 WHERE code = 'coin-half-86'");

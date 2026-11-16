@@ -44,7 +44,7 @@ function Card({ r, onDone }) {
         <Status status={r.status} />
       </div>
       <div className="gp-facts num">
-        <div><span>قیمت ثبت‌شده</span><b>{fmtRial(r.unitPrice)}</b></div>
+        <div><span>قیمت ثبت‌شده (هر {r.priceUnit ?? r.unit})</span><b>{fmtRial(r.unitPrice)}</b></div>
         <div><span>مبلغ کل (ریال)</span><b>{fmtRial(r.total)}</b></div>
         <div>
           <span>قیمت بازار اکنون</span>

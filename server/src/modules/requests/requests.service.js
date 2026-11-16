@@ -3,17 +3,18 @@ import { emitOrderChanged, emitRequestChanged } from "../../realtime/events.js";
 import { HttpError } from "../../utils/httpError.js";
 import { toJalali } from "../../utils/jalali.js";
 import { likeContains } from "../../utils/numbers.js";
-import { getFeedState } from "../products/products.service.js";
+import { effectivePrice, getFeedState } from "../products/products.service.js";
 
 const MAX_PENDING_PER_CUSTOMER = 20;
 
 const SELECT = `
   SELECT r.id, r.user_id, r.product_id, r.product_name, r.unit, r.side, r.quantity,
-         r.unit_price, r.total, r.status, r.customer_note, r.admin_note,
+         r.unit_price, r.total, r.price_unit, r.price_per, r.status, r.customer_note, r.admin_note,
          r.created_at, r.decided_at, r.seen_at, r.ledger_order_id,
          u.full_name AS customer_name, u.username AS customer_username,
          u.phone AS customer_phone,
-         CASE r.side WHEN 'buy' THEN p.buy_price ELSE p.sell_price END AS market_price,
+         CASE r.side WHEN 'buy' THEN p.buy_price ELSE p.sell_price END AS market_base,
+         CASE r.side WHEN 'buy' THEN p.buy_adjust ELSE p.sell_adjust END AS market_adjust,
          p.ledger_sync
     FROM trade_requests r
     JOIN users u ON u.id = r.user_id
@@ -29,6 +30,8 @@ const base = (r) => ({
   unit: r.unit,
   quantity: Number(r.quantity),
   unitPrice: r.unit_price,
+  priceUnit: r.price_unit ?? r.unit, // unitPrice is per this; pricePer units make one
+  pricePer: Number(r.price_per ?? 1),
   total: r.total,
   status: r.status,
   customerNote: r.customer_note ?? null,
@@ -50,8 +53,9 @@ export const toAdminRequest = (r) => ({
     username: r.customer_username ?? null,
     phone: r.customer_phone ?? null,
   },
-  marketPrice: r.market_price ?? null, // today's price for this product and side
-  ledgerEligible: Boolean(r.ledger_sync) && Number.isInteger(Number(r.quantity)),
+  marketPrice: effectivePrice(r.market_base, r.market_adjust), // today's price, same side
+  ledgerEligible:
+    Boolean(r.ledger_sync) && Number.isInteger(Number(r.quantity)) && Number(r.price_per ?? 1) === 1,
   ledgerOrderId: r.ledger_order_id ?? null,
 });
 
@@ -62,6 +66,13 @@ const units = (n) => Math.round(Number(n) * SCALE);
 
 function assertQuantity(product, quantity) {
   const q = units(quantity);
+  if (Math.abs(Number(quantity) * SCALE - q) > 1e-6) {
+    throw HttpError.badRequest(
+      "Quantity has too many decimals",
+      [{ field: "quantity", message: "At most 3 decimals" }],
+      { code: "BAD_QUANTITY" },
+    );
+  }
   const min = units(product.min_quantity);
   const max = units(product.max_quantity);
   const step = units(product.quantity_step);
@@ -100,7 +111,7 @@ export async function createRequest(user, input) {
     // FOR SHARE: the price cannot change between reading it and inserting the request.
     const found = await db.query(
       `SELECT id, name, unit, min_quantity, max_quantity, quantity_step,
-              buy_price, sell_price, is_active
+              buy_price, sell_price, buy_adjust, sell_adjust, price_unit, price_per, is_active
          FROM products WHERE id = $1 FOR SHARE`,
       [input.productId],
     );
@@ -114,7 +125,11 @@ export async function createRequest(user, input) {
       throw HttpError.unavailable("Prices are not up to date right now", { code: "PRICES_STALE" });
     }
 
-    const price = input.side === "buy" ? product.buy_price : product.sell_price;
+    // The customer trades at the marked-up price they saw, never the raw source price.
+    const price =
+      input.side === "buy"
+        ? effectivePrice(product.buy_price, product.buy_adjust)
+        : effectivePrice(product.sell_price, product.sell_adjust);
     if (!price) {
       throw HttpError.conflict("This product is not available for this operation", {
         code: "NOT_AVAILABLE",
@@ -140,8 +155,9 @@ export async function createRequest(user, input) {
 
     const inserted = await db.query(
       `INSERT INTO trade_requests
-         (user_id, product_id, product_name, unit, side, quantity, unit_price, customer_note, client_key)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         (user_id, product_id, product_name, unit, side, quantity, unit_price, customer_note, client_key,
+          price_unit, price_per)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id`,
       [
         user.id,
@@ -153,6 +169,8 @@ export async function createRequest(user, input) {
         price,
         input.note ?? null,
         input.clientKey ?? null,
+        product.price_unit ?? product.unit,
+        product.price_per ?? 1,
       ],
     );
     const full = await db.query(`${SELECT} WHERE r.id = $1`, [inserted.rows[0].id]);

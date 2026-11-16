@@ -1,12 +1,9 @@
 import { withTransaction } from "../../db/pool.js";
 import { emitPricesChanged } from "../../realtime/events.js";
-import { getFeedState, toProduct } from "../products/products.service.js";
+import { COLUMNS as PRODUCT_COLUMNS, getFeedState, toProduct } from "../products/products.service.js";
 import { autoMapByName } from "./automap.js";
 import { normalizePrice } from "./prices.schemas.js";
 
-const PRODUCT_COLUMNS = `id, code, name, group_name, group_order, sort_order, unit,
-  min_quantity, max_quantity, quantity_step, buy_price, sell_price, source_id,
-  is_active, ledger_sync, prices_updated_at`;
 
 /** When the collector saw this event, never later than now (its clock may drift). */
 function observedTime(observedAt) {

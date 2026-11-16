@@ -49,6 +49,9 @@ export const updateProductBody = z
     sellPrice: adminPrice,
     isActive: z.boolean(),
     sourceId: z.union([z.number().int().positive(), z.null()]),
+    // Signed markup added to the source price before customers see it (rials).
+    buyAdjust: z.number().int().min(-1e12).max(1e12),
+    sellAdjust: z.number().int().min(-1e12).max(1e12),
   })
   .partial()
   .refine((b) => Object.keys(b).length > 0, { message: "Nothing to update" });

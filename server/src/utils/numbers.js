@@ -40,7 +40,12 @@ export function normalizeJalaliDate(value) {
  * thousands separators, so "1,000" is rejected rather than guessed at.
  */
 export function parseQuantity(value) {
-  if (typeof value === "number") return Number.isFinite(value) ? value : NaN;
+  if (typeof value === "number") {
+    // Same rule as for text: at most 3 decimals (1.2345 is refused, never rounded).
+    return Number.isFinite(value) && Math.abs(value * 1000 - Math.round(value * 1000)) < 1e-6
+      ? value
+      : NaN;
+  }
   const text = toLatinDigits(value ?? "").trim().replace("٫", ".");
   return /^\d+(\.\d{1,3})?$/.test(text) ? Number(text) : NaN;
 }

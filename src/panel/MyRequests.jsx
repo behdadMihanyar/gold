@@ -56,8 +56,8 @@ export default function MyRequests() {
             <Status status={r.status} />
           </div>
           <div className="gp-facts num">
-            <div><span>مقدار</span><b>{fmtQty(r.quantity)} {r.unit}</b></div>
-            <div><span>قیمت واحد</span><b>{fmtRial(r.unitPrice)}</b></div>
+            <div><span>{r.unit === "گرم" ? "وزن" : "تعداد"}</span><b>{fmtQty(r.quantity)} {r.unit}</b></div>
+            <div><span>قیمت هر {r.priceUnit ?? r.unit}</span><b>{fmtRial(r.unitPrice)}</b></div>
             <div><span>مبلغ کل (ریال)</span><b>{fmtRial(r.total)}</b></div>
           </div>
           <div className="gp-when num">

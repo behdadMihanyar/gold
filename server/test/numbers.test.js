@@ -30,3 +30,12 @@ test("normalizeJalaliDate pads and validates", () => {
   assert.equal(normalizeJalaliDate("garbage"), null);
   assert.equal(normalizeJalaliDate(undefined), null);
 });
+
+test("parseQuantity allows at most 3 decimals, as text or as a number", async () => {
+  const { parseQuantity } = await import("../src/utils/numbers.js");
+  assert.equal(parseQuantity(9.216), 9.216);
+  assert.equal(parseQuantity("۹٫۲۱۶"), 9.216);
+  assert.ok(Number.isNaN(parseQuantity(1.2345)));
+  assert.ok(Number.isNaN(parseQuantity("1.2345")));
+  assert.ok(Number.isNaN(parseQuantity("1,000")));
+});

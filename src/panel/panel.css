@@ -39,7 +39,7 @@
 .gp-banner { border-radius: 14px; padding: 11px 14px; margin-bottom: 14px; display: flex; gap: 10px; align-items: center; font-size: 14px; }
 .gp-banner.warn { background: #fff1d6; color: #6b4600; border: 1px solid #f0d28c; }
 .gp-banner.err { background: var(--sell-bg); color: var(--sell-d); border: 1px solid #f0bdb5; }
-.gp-live { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+.gp-live { white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
 .gp-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--buy); box-shadow: 0 0 0 0 #0a7a5266; animation: gp-pulse 2.2s infinite; }
 .gp-live.off i { background: var(--sell); animation: none; }
 @keyframes gp-pulse { 70% { box-shadow: 0 0 0 7px #0a7a5200; } 100% { box-shadow: 0 0 0 0 #0a7a5200; } }
@@ -88,15 +88,42 @@
 .gp-seg button.on.sell { background: var(--sell); color: #fff; box-shadow: 0 4px 12px #c03a2a55; }
 .gp-seg button:disabled { opacity: .45; cursor: not-allowed; }
 .gp-hint { font-size: 12.5px; color: var(--muted); margin: 8px 4px 0; min-height: 20px; }
-.gp-label { display: block; font-weight: 700; font-size: 14px; margin: 16px 0 6px; }
+.gp-hint.bad { color: var(--sell-d); font-weight: 700; }
 .gp-qty { display: flex; align-items: stretch; gap: 8px; }
-.gp-qty button { width: 52px; border: 0; border-radius: 14px; background: var(--tone-bg); color: var(--tone-d); font-size: 26px; font-weight: 700; }
-.gp-qty input { flex: 1; min-width: 0; text-align: center; font-size: 24px; font-weight: 800; border: 2px solid var(--line); border-radius: 14px; padding: 8px; color: var(--ink); background: #fff; }
-.gp-qty input:focus { border-color: var(--tone); outline: none; }
-.gp-chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.gp-chip { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 3px 14px; font-size: 14px; }
-.gp-chip:hover { border-color: var(--tone); color: var(--tone-d); }
-.gp-total { margin-top: 16px; border-radius: 18px; background: var(--tone-bg); color: var(--tone-d); padding: 12px 16px; display: flex; justify-content: space-between; align-items: baseline; }
+.gp-qty > button { flex: none; width: 54px; border: 0; border-radius: 14px; background: var(--tone-bg); color: var(--tone-d); font-size: 26px; font-weight: 700; line-height: 1; transition: background .15s; }
+.gp-qty > button:hover { background: color-mix(in srgb, var(--tone) 22%, #fff); }
+.gp-qty > button:active { transform: scale(.96); }
+.gp-qty-field { position: relative; flex: 1; min-width: 0; }
+.gp-qty-field input { width: 100%; height: 100%; min-height: 56px; text-align: center; font-size: 24px; font-weight: 800; border: 2px solid var(--line); border-radius: 14px; padding: 8px 52px; color: var(--ink); background: #fff; font-variant-numeric: tabular-nums; }
+.gp-qty-field input:focus { border-color: var(--tone); outline: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 15%, transparent); }
+.gp-qty-field input[aria-invalid="true"] { border-color: #e7b1a8; }
+.gp-qty-unit { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+/* Quick amounts: always readable, the chosen one clearly marked. */
+.gp-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; margin-top: 10px; }
+.gp-preset { height: 42px; border: 1.5px solid var(--line); background: #f6f8f5; color: var(--ink); border-radius: 12px; font-size: 15px; font-weight: 700; padding: 0 6px; white-space: nowrap; transition: border-color .15s, background .15s, color .15s; }
+.gp-preset small { font-size: 11px; font-weight: 400; color: var(--muted); }
+.gp-preset:hover { border-color: var(--tone); background: #fff; }
+.gp-preset.on { border-color: var(--tone); background: var(--tone-bg); color: var(--tone-d); }
+.gp-preset.on small { color: inherit; }
+.gp-addnote { border: 0; background: none; color: var(--muted); padding: 12px 2px 0; font-size: 14px; }
+.gp-addnote:hover { color: var(--ink); text-decoration: underline; }
+.gp-sheet-foot { position: sticky; bottom: -20px; margin: 0 -18px -20px; padding: 4px 18px 20px; background: linear-gradient(to bottom, #fff0, #fff 14px); }
+.gp-seg button { transition: background .2s, color .2s, box-shadow .2s; }
+.gp-seg button.moved-up span, .gp-seg button.moved-down span { animation: gp-blink .8s ease-in-out 2; }
+@keyframes gp-blink { 50% { opacity: .35; } }
+.gp-scrim { animation: gp-fade .2s ease-out; }
+.gp-scrim.out { animation: gp-fade .18s ease-in reverse forwards; }
+.gp-sheet.out { animation: gp-down .18s ease-in forwards; }
+@keyframes gp-fade { from { opacity: 0; } }
+@keyframes gp-down { to { transform: translateY(40px); opacity: 0; } }
+/* Board skeleton while prices load. */
+.gp-skel { height: 66px; border-top: 1px solid var(--line); background: linear-gradient(90deg, #f3f5f2 25%, #e9eee8 37%, #f3f5f2 63%); background-size: 400% 100%; animation: gp-shimmer 1.4s ease infinite; }
+.gp-skel:first-child { border-top: 0; }
+@keyframes gp-shimmer { from { background-position: 100% 50%; } to { background-position: 0 50%; } }
+.gp-row { transition: background .15s; }
+.gp-row:not(:disabled):active { background: #eef3ec; }
+.gp-label { display: block; font-weight: 700; font-size: 14px; margin: 16px 0 6px; }
+.gp-total { margin-top: 14px; border-radius: 18px; background: var(--tone-bg); color: var(--tone-d); padding: 12px 16px; display: flex; justify-content: space-between; align-items: baseline; }
 .gp-total strong { font-size: 24px; }
 .gp-total small { font-size: 12px; opacity: .8; }
 .gp-note { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 9px 12px; resize: none; background: #fff; }
@@ -172,6 +199,7 @@
 .gp-login-card .gp-cta { --tone: var(--ink); --tone-d: #000; }
 
 @media (max-width: 560px) {
+  .gp-board-head { flex-direction: column; align-items: flex-start; gap: 6px; }
   .gp-cols { display: none; }
   .gp-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 12px 14px; }
   .gp-pname { grid-column: 1 / -1; }
@@ -210,3 +238,28 @@
 .gp-typebar { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
 .gp-typebar .gp-input { flex: 1; }
 @media (max-width: 560px) { .gp-typebar { flex-wrap: wrap; } }
+
+/* ---------- admin: prices with markups ---------- */
+.gp-pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gp-pcol { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; background: #fbfcfa; }
+.gp-pcol.buy { border-top: 4px solid var(--buy); } .gp-pcol.sell { border-top: 4px solid var(--sell); }
+.gp-pcol-title { font-weight: 800; margin-bottom: 6px; display: flex; gap: 8px; align-items: baseline; }
+.gp-pcol.buy .gp-pcol-title { color: var(--buy-d); } .gp-pcol.sell .gp-pcol-title { color: var(--sell-d); }
+.gp-pcol-title small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.gp-pline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px dashed #e3e8e1; font-size: 13.5px; }
+.gp-pline:first-of-type { border-top: 0; }
+.gp-pline > span { color: var(--muted); flex: none; }
+.gp-pline > input { width: 60%; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; text-align: left; background: #fff; }
+.gp-pline.shown b { font-size: 15.5px; }
+.gp-pcol.buy .gp-pline.shown b { color: var(--buy-d); } .gp-pcol.sell .gp-pline.shown b { color: var(--sell-d); }
+.gp-adjust { display: flex; gap: 6px; width: 60%; }
+.gp-adjust input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; text-align: left; background: #fff; }
+.gp-sign { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; flex: none; }
+.gp-sign button { border: 0; background: #fff; width: 32px; font-size: 17px; font-weight: 800; color: var(--muted); }
+.gp-sign button.on.plus { background: var(--buy); color: #fff; } .gp-sign button.on.minus { background: var(--sell); color: #fff; }
+.gp-link-src { font-size: 13.5px; color: var(--muted); }
+.gp-link-src summary { cursor: pointer; padding: 2px 0; }
+.gp-link-src select { display: block; width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #fff; }
+@media (max-width: 700px) {
+  .gp-pgrid { grid-template-columns: 1fr; }
+}

@@ -25,8 +25,8 @@ export default function Market() {
     <>
       <div className="gp-board-head">
         <div>
-          <h1 className="gp-h1">بازار سکه و طلا</h1>
-          <p className="gp-sub" style={{ margin: 0 }}>روی یک محصول بزنید تا خرید یا فروش را انتخاب کنید.</p>
+          <h1 className="gp-h1">سکه و طلا قصر</h1>
+          <p className="gp-sub" style={{ margin: 0 }}>یک محصول را برای خرید یا فروش انتخاب کنید.</p>
         </div>
         <span className={`gp-live${stale || failed ? " off" : ""}`}>
           <i />
@@ -45,7 +45,13 @@ export default function Market() {
         </div>
       )}
       {loaded && !failed && products.length === 0 && <div className="gp-empty">هنوز محصولی تعریف نشده است.</div>}
-      {!loaded && <div className="gp-empty">در حال دریافت قیمت‌ها…</div>}
+      {!loaded && (
+        <div className="gp-group" aria-busy="true" aria-label="در حال دریافت قیمت‌ها">
+          <div className="gp-card">
+            {[0, 1, 2, 3, 4].map((i) => <div key={i} className="gp-skel" />)}
+          </div>
+        </div>
+      )}
 
       {groups.map((g) => (
         <section className="gp-group" key={g.name}>
@@ -58,7 +64,7 @@ export default function Market() {
                 <button key={p.id} className="gp-row" disabled={none} onClick={() => setOpenId(p.id)}>
                   <span className="gp-pname">
                     <Coin code={p.code} />
-                    <span><b>{p.name}</b><small>{p.unit}</small></span>
+                    <span><b>{p.name}</b><small>قیمت هر {p.priceUnit}</small></span>
                   </span>
                   <span data-l="می‌خرید" className={`gp-price num ${p.buyPrice === null ? "none" : "buy"} ${flash[p.id] ?? ""}`}>
                     {fmtRial(p.buyPrice)}
@@ -74,9 +80,6 @@ export default function Market() {
           </div>
         </section>
       ))}
-      <p className="gp-sub" style={{ marginTop: 18 }}>
-        «می‌خرید» قیمتی است که شما برای خرید می‌پردازید و «می‌فروشید» قیمتی است که برای فروش دریافت می‌کنید. قیمت نهایی همان است که هنگام ثبت درخواست می‌بینید.
-      </p>
       {open && <ProductSheet product={open} stale={stale} onClose={() => setOpenId(null)} />}
     </>
   );

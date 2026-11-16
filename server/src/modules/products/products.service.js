@@ -3,9 +3,19 @@ import { query, withTransaction } from "../../db/pool.js";
 import { emitPricesChanged } from "../../realtime/events.js";
 import { HttpError } from "../../utils/httpError.js";
 
-const COLUMNS = `id, code, name, group_name, group_order, sort_order, unit,
+export const COLUMNS = `id, code, name, group_name, group_order, sort_order, unit,
   min_quantity, max_quantity, quantity_step, buy_price, sell_price, source_id,
-  is_active, ledger_sync, prices_updated_at`;
+  is_active, ledger_sync, prices_updated_at, price_unit, price_per, buy_adjust, sell_adjust`;
+
+/**
+ * The price customers see and trade at: the source price plus the admin's markup
+ * for that side. Missing, or pushed to zero or below by the markup → not available.
+ */
+export function effectivePrice(raw, adjust) {
+  if (raw === null || raw === undefined) return null;
+  const value = Number(raw) + Number(adjust ?? 0);
+  return value > 0 ? value : null;
+}
 
 /**
  * buyPrice  = what a customer pays to BUY from the shop (shown green)
@@ -24,14 +34,22 @@ export function toProduct(row, { admin = false } = {}) {
     minQuantity: Number(row.min_quantity),
     maxQuantity: Number(row.max_quantity),
     step: Number(row.quantity_step),
-    buyPrice: row.buy_price ?? null,
-    sellPrice: row.sell_price ?? null,
+    buyPrice: effectivePrice(row.buy_price, row.buy_adjust),
+    sellPrice: effectivePrice(row.sell_price, row.sell_adjust),
+    // The price is per `priceUnit`; one priceUnit is `pricePer` units (1 مثقال = 4.608 گرم).
+    priceUnit: row.price_unit ?? row.unit,
+    pricePer: Number(row.price_per ?? 1),
     isActive: row.is_active,
     updatedAt: row.prices_updated_at ?? null,
   };
   if (admin) {
     product.sourceId = row.source_id ?? null;
     product.ledgerSync = row.ledger_sync;
+    // Before the markup: what the collector (or a manual edit) set.
+    product.baseBuyPrice = row.buy_price ?? null;
+    product.baseSellPrice = row.sell_price ?? null;
+    product.buyAdjust = Number(row.buy_adjust ?? 0);
+    product.sellAdjust = Number(row.sell_adjust ?? 0);
   }
   return product;
 }
@@ -115,8 +133,11 @@ export async function updateProduct(id, patch) {
       sell_price: "sellPrice" in patch ? patch.sellPrice : current.sell_price,
       is_active: patch.isActive ?? current.is_active,
       source_id: "sourceId" in patch ? patch.sourceId : current.source_id,
+      buy_adjust: patch.buyAdjust ?? current.buy_adjust,
+      sell_adjust: patch.sellAdjust ?? current.sell_adjust,
     };
-    let pricesChanged = "buyPrice" in patch || "sellPrice" in patch;
+    let pricesChanged =
+      "buyPrice" in patch || "sellPrice" in patch || "buyAdjust" in patch || "sellAdjust" in patch;
 
     // Linking to a feed item adopts the prices it last reported, right away.
     if (
@@ -140,10 +161,12 @@ export async function updateProduct(id, patch) {
       const res = await db.query(
         `UPDATE products
             SET buy_price = $2, sell_price = $3, is_active = $4, source_id = $5,
+                buy_adjust = $7, sell_adjust = $8,
                 prices_updated_at = CASE WHEN $6 THEN now() ELSE prices_updated_at END
           WHERE id = $1
           RETURNING ${COLUMNS}`,
-        [id, next.buy_price, next.sell_price, next.is_active, next.source_id, pricesChanged],
+        [id, next.buy_price, next.sell_price, next.is_active, next.source_id, pricesChanged,
+          next.buy_adjust, next.sell_adjust],
       );
       return res.rows[0];
     } catch (err) {

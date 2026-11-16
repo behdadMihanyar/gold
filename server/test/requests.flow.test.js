@@ -33,7 +33,8 @@ describe("request workflow (database)", { skip }, () => {
     other = await mk("customer", "bob");
     admin = await mk("admin", "boss");
 
-    await q("UPDATE products SET buy_price = NULL, sell_price = NULL, source_id = NULL WHERE code <> 'coin-full-86'");
+    await q("UPDATE products SET buy_adjust = 0, sell_adjust = 0, source_id = NULL");
+    await q("UPDATE products SET buy_price = NULL, sell_price = NULL WHERE code <> 'coin-full-86'");
     await q("DELETE FROM price_feed_items");
     await q("UPDATE price_feed SET last_heartbeat_at = NULL, connected = false");
     coin = (await q("SELECT id FROM products WHERE code = 'coin-full-86'")).rows[0].id;
