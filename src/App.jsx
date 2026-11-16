@@ -14,6 +14,7 @@ import MyRequests from "./panel/MyRequests";
 import AdminRequests from "./admin/Requests";
 import AdminCustomers from "./admin/Customers";
 import AdminPrices from "./admin/Prices";
+import AdminCollector from "./admin/Collector";
 
 const ByRole = ({ admin, customer }) => {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ function App() {
         <Route path="/sms" element={<AdminOnly><Sms /></AdminOnly>} />
         <Route path="/customers" element={<AdminOnly><AdminCustomers /></AdminOnly>} />
         <Route path="/prices" element={<AdminOnly><AdminPrices /></AdminOnly>} />
+        <Route path="/collector" element={<AdminOnly><AdminCollector /></AdminOnly>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

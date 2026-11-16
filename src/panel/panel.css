@@ -200,3 +200,13 @@
 .gp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .gp-two .gp-field { margin-bottom: 6px; font-size: 13px; }
 @media (max-width: 560px) { .gp-two { grid-template-columns: 1fr; } }
+
+/* ---------- admin: collector remote view ---------- */
+.gp-banner.ok { background: var(--buy-bg); color: var(--buy-d); border: 1px solid #9fd8bd; }
+.gp-steps { margin: 0 0 14px; padding-inline-start: 22px; font-size: 14px; line-height: 2; }
+.gp-screen { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; direction: ltr; }
+.gp-screen img { display: block; width: 100%; height: auto; cursor: crosshair; user-select: none; }
+.gp-screen-busy { position: absolute; top: 8px; left: 8px; background: var(--ink); color: #fff; border-radius: 99px; padding: 0 10px; }
+.gp-typebar { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.gp-typebar .gp-input { flex: 1; }
+@media (max-width: 560px) { .gp-typebar { flex-wrap: wrap; } }

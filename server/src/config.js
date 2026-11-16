@@ -26,6 +26,8 @@ const schema = z.object({
   // Customers cannot send requests when the price feed has been silent this long
   // (only once a collector has connected at least once). 0 turns the check off.
   FEED_STALE_SECONDS: z.coerce.number().int().min(0).default(60),
+  // Local port of the collector's control server (admin "Collector" page).
+  COLLECTOR_CONTROL_PORT: z.coerce.number().int().min(1).max(65535).default(4100),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -51,6 +53,7 @@ export const config = Object.freeze({
     .filter(Boolean),
   priceRelayKey: env.PRICE_RELAY_KEY ?? null,
   feedStaleSeconds: env.FEED_STALE_SECONDS,
+  collectorControlPort: env.COLLECTOR_CONTROL_PORT,
   brsapiKey: env.BRSAPI_KEY,
   cookieSecure: env.COOKIE_SECURE
     ? env.COOKIE_SECURE === "true"

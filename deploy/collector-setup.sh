@@ -129,22 +129,10 @@ cat <<MSG
 
 One-time step — log in to hanzaeigold.ir so the collector can read prices:
 
-  1. On YOUR OWN computer, open a terminal and run:
-       ssh -L $VNC_PORT:localhost:$VNC_PORT root@$IP
-     (leave this running)
+  Open the dashboard as an admin → «اتصال کالکتور» (Collector) in the menu.
+  You'll see the collector's browser; click and type there to log in once.
 
-  2. On the server, in a second SSH session, run:
-       gold-collector-login
-     (leave this running too)
-
-  3. On your own computer, open a VNC viewer (e.g. RealVNC Viewer, TigerVNC) and
-     connect to  localhost:$VNC_PORT  (no password needed — it only works because
-     of the SSH tunnel in step 1). You'll see the collector's browser window;
-     log in to hanzaeigold.ir there, the normal way.
-
-  4. Once logged in, press Ctrl+C in both terminals. The login is saved in the
-     browser profile — you will not need to repeat this unless you're logged out
-     by hanzaeigold.ir itself.
+  (Alternative for advanced users: SSH tunnel + VNC — run gold-collector-login.)
 
 Check it's working:
   systemctl status gold-collector

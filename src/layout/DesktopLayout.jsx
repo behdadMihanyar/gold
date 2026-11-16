@@ -109,6 +109,14 @@ const DesktopLayout = () => {
               <span className="w-7 text-center text-xl">🏷️</span>
               قیمت‌ها
             </NavLink>
+            <NavLink to="/collector" className={({ isActive }) =>
+                isActive
+                  ? "text-gray-800 flex gap-1 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  : "text-white flex gap-1 no-underline hover:scale-108 duration-200 mr-3"
+              }>
+              <span className="w-7 text-center text-xl">🔌</span>
+              اتصال کالکتور
+            </NavLink>
             <NavLink
               to="/sms"
               className={({ isActive }) =>

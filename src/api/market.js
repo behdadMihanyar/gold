@@ -23,6 +23,9 @@ export const adminApi = {
   addCustomer: (body) => request("/admin/customers", { method: "POST", body }).then((r) => r.data),
   updateCustomer: (id, body) =>
     request(`/admin/customers/${id}`, { method: "PATCH", body }).then((r) => r.data),
+  collectorState: () => request("/admin/collector/state").then((r) => r.data),
+  collector: (action, body = {}) =>
+    request(`/admin/collector/${action}`, { method: "POST", body }),
   updateProduct: (id, body) =>
     request(`/admin/products/${id}`, { method: "PATCH", body }).then((r) => r.data),
 };

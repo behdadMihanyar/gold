@@ -6,6 +6,7 @@ import { config } from "./config.js";
 import { pool } from "./db/pool.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { collectorRouter } from "./modules/collector/collector.routes.js";
 import { customersRouter } from "./modules/customers/customers.routes.js";
 import { ordersRouter } from "./modules/orders/orders.routes.js";
 import { pricesRouter } from "./modules/prices/prices.routes.js";
@@ -40,6 +41,7 @@ export function createApp() {
   app.use("/api/admin/customers", customersRouter);
   app.use("/api/admin/requests", adminRequestsRouter);
   app.use("/api/admin/products", adminProductsRouter);
+  app.use("/api/admin/collector", collectorRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

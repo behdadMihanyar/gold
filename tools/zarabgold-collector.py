@@ -5,14 +5,18 @@ Install: python -m pip install playwright
 Run:     python collector.py
 Keep this program and its browser open. A SQLite outbox retries every update.
 On a headless server, see deploy/collector-setup.sh to run this continuously under
-a virtual display with a systemd service, plus a one-time VNC login.
+a virtual display with a systemd service. Log in once from the dashboard's admin
+"Collector" page, which shows this browser and lets you click/type into it.
 """
 import asyncio
+import hmac
 import json
 import os
 import sqlite3
+import threading
 import uuid
 from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -34,6 +38,108 @@ HEADLESS = os.environ.get("ZARABGOLD_HEADLESS", "false").lower() == "true"
 # Playwright's own browser download is blocked from some locations; deploy/collector-setup.sh
 # installs the OS's Chromium package instead and points here, rather than relying on that CDN.
 CHROMIUM_EXECUTABLE = os.environ.get("ZARABGOLD_CHROMIUM_EXECUTABLE") or None
+# Local control port used by the dashboard's admin "Collector" page to show this browser
+# and click/type into it (for the one-time hanzaeigold.ir login). 127.0.0.1 only; 0 = off.
+CONTROL_PORT = int(os.environ.get("ZARABGOLD_CONTROL_PORT", "4100"))
+# Keys the admin page may press; anything else is refused.
+ALLOWED_KEYS = {"Enter", "Tab", "Backspace", "Delete", "Escape", "ArrowUp", "ArrowDown",
+                "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"}
+
+
+def start_control_server(loop, current_page, status, token, port):
+    """Tiny HTTP API so the dashboard (admin only, via its own API) can drive this browser.
+
+    GET  /state       {url, title, width, height, loggedIn, connected, rows, lastCheck}
+    GET  /screenshot  JPEG of the visible page
+    POST /click       {x, y}           page coordinates
+    POST /type        {text}           types into the focused field
+    POST /key         {key}            one of ALLOWED_KEYS
+    POST /scroll      {dy}
+    POST /home                         reopen hanzaeigold.ir
+    POST /reload
+    Every call needs the relay key in X-Qasr-Relay-Key (other local users can't use it).
+    """
+    def run(coro, timeout=25):
+        return asyncio.run_coroutine_threadsafe(coro, loop).result(timeout)
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):  # keep the journal free of request noise
+            pass
+
+        def send(self, code, body=b"", ctype="application/json"):
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def json(self, code, data):
+            self.send(code, json.dumps(data, ensure_ascii=False).encode())
+
+        def authorized(self):
+            given = self.headers.get("X-Qasr-Relay-Key", "")
+            if hmac.compare_digest(given.encode(), token.encode()):
+                return True
+            self.json(401, {"error": "unauthorized"})
+            return False
+
+        def do_GET(self):
+            if not self.authorized():
+                return
+            page = current_page()
+            try:
+                if self.path.split("?")[0] == "/screenshot":
+                    return self.send(200, run(page.screenshot(type="jpeg", quality=70)), "image/jpeg")
+                if self.path.split("?")[0] == "/state":
+                    size = page.viewport_size or {"width": 1280, "height": 720}
+                    return self.json(200, {**status, "url": page.url, "title": run(page.title()),
+                                           "width": size["width"], "height": size["height"]})
+                self.json(404, {"error": "not found"})
+            except Exception as error:
+                self.json(503, {"error": type(error).__name__})
+
+        def do_POST(self):
+            if not self.authorized():
+                return
+            try:
+                length = min(int(self.headers.get("Content-Length") or 0), 10000)
+                body = json.loads(self.rfile.read(length) or b"{}")
+                if not isinstance(body, dict):
+                    raise ValueError
+            except ValueError:
+                return self.json(400, {"error": "bad json"})
+            page = current_page()
+            action = self.path.split("?")[0].strip("/")
+            try:
+                if action == "click":
+                    run(page.mouse.click(float(body["x"]), float(body["y"])))
+                elif action == "type":
+                    text = str(body.get("text", ""))[:500]
+                    run(page.keyboard.type(text, delay=25))
+                elif action == "key":
+                    if body.get("key") not in ALLOWED_KEYS:
+                        return self.json(400, {"error": "key not allowed"})
+                    run(page.keyboard.press(body["key"]))
+                elif action == "scroll":
+                    run(page.mouse.wheel(0, max(-3000, min(3000, float(body.get("dy", 0))))))
+                elif action == "home":
+                    # Only ever the price source — never an arbitrary URL.
+                    run(page.goto(SOURCE, wait_until="domcontentloaded", timeout=60000), timeout=65)
+                elif action == "reload":
+                    run(page.reload(wait_until="domcontentloaded", timeout=60000), timeout=65)
+                else:
+                    return self.json(404, {"error": "not found"})
+                self.json(200, {"ok": True})
+            except (KeyError, TypeError, ValueError):
+                self.json(400, {"error": "bad request"})
+            except Exception as error:
+                self.json(503, {"error": type(error).__name__})
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
 
 def receiver_endpoint(config):
     # Older WordPress downloads inserted JSON slash escapes into Python literals.
@@ -115,7 +221,7 @@ async def main():
                 await asyncio.to_thread(post, row[1])
                 conn.execute("DELETE FROM outbox WHERE id=?", (row[0],))
                 conn.commit()
-                print("Delivered update to WordPress.", flush=True)
+                print("Delivered update to the dashboard.", flush=True)
                 delay = 1
             except Exception as error:
                 code = getattr(error, "code", None)
@@ -151,6 +257,18 @@ async def main():
         context.on("page", lambda page: page.on("websocket", attach))
         page = context.pages[0] if context.pages else await context.new_page()
         sender_task = asyncio.create_task(sender())
+        status = {"loggedIn": False, "connected": False, "rows": 0, "lastCheck": None}
+        control = None
+        if CONTROL_PORT:
+            def current_page():
+                # The login flow may open a new tab; show the newest one still open.
+                open_pages = [pg for pg in context.pages if not pg.is_closed()]
+                return open_pages[-1] if open_pages else page
+            try:
+                control = start_control_server(asyncio.get_running_loop(), current_page, status, token, CONTROL_PORT)
+                print("Control page ready for the dashboard (127.0.0.1:%d)." % CONTROL_PORT, flush=True)
+            except OSError as error:
+                print("Control server not started:", error, flush=True)
         ticks = 0
         last_snapshot = None
         try:
@@ -167,6 +285,9 @@ async def main():
                       connected: !!window.Echo?.connector?.pusher?.allChannels().some(c => c.name.startsWith('private-Products.') && c.subscribed) && window.Echo?.connector?.pusher?.connection?.state === 'connected',
                       rows: Array.from(document.querySelectorAll('[id^="product-card-"]')).filter(e => /^product-card-\\d+$/.test(e.id)).map(e => ({id: Number(e.id.split('-').pop()), values: Array.from(e.querySelectorAll('a')).map(a => a.textContent.trim())}))
                     })""")
+                    status.update(connected=bool(view["connected"]), rows=len(view["rows"]),
+                                  loggedIn=bool(view["rows"]) or bool(view["connected"]),
+                                  lastCheck=datetime.now(timezone.utc).isoformat())
                     if ticks % 3 == 0 and view["rows"]:
                         def amount(text):
                             digits = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
@@ -183,6 +304,8 @@ async def main():
                 except Exception:
                     enqueue({"kind":"heartbeat", "eventId":str(uuid.uuid4()), "connected":False})
         finally:
+            if control:
+                control.shutdown()
             sender_task.cancel()
             await asyncio.gather(sender_task, return_exceptions=True)
             await context.close()

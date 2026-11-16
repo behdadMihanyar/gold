@@ -107,9 +107,11 @@ The key travels unencrypted until the site has a domain and SSL — add them soo
 `bash deploy/collector-setup.sh` (run once, after `deploy/setup.sh`) installs the
 collector as a systemd service (`gold-collector`) under a virtual display
 (`gold-display`), both restarting automatically on crash or reboot. It keeps its
-hanzaeigold.ir login in a browser profile on disk, so you only log in once — the
-script prints exact steps for a one-time login over an SSH-tunnelled VNC session
-(`gold-collector-login`), since the server has no monitor.
+hanzaeigold.ir login in a browser profile on disk, so you only log in once: open
+the admin page **اتصال کالکتور** (`/collector`), which shows the collector's browser
+as a live picture — click and type there to log in. (The collector serves this on
+127.0.0.1:4100, protected by `PRICE_RELAY_KEY`; the API proxies it for admins only.
+`gold-collector-login` + an SSH-tunnelled VNC viewer still works as an alternative.)
 
 ```
 systemctl status gold-collector     # running?

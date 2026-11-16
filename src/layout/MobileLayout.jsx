@@ -86,6 +86,11 @@ const MobileLayout = ({ show, setShow }) => {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/collector" onClick={() => setShow((prev) => !prev)}>
+                  اتصال کالکتور
+                </NavLink>
+              </li>
+              <li>
                 <NavLink to="/sms" onClick={() => setShow((prev) => !prev)}>
                   پنل پیامکی
                 </NavLink>
