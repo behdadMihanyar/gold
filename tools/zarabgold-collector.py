@@ -46,9 +46,35 @@ CONTROL_PORT = int(os.environ.get("ZARABGOLD_CONTROL_PORT", "4100"))
 WATCHDOG_RELOAD_AFTER = 90
 WATCHDOG_RELOAD_EVERY = 180
 WATCHDOG_QUIET_AFTER_CONTROL = 600
+# The board is re-read this often (seconds). Live websocket updates arrive instantly
+# anyway; this catches anything the socket path misses within a second.
+POLL_SECONDS = 1.0
+HEARTBEAT_SECONDS = 10
 # Keys the admin page may press; anything else is refused.
 ALLOWED_KEYS = {"Enter", "Tab", "Backspace", "Delete", "Escape", "ArrowUp", "ArrowDown",
                 "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"}
+
+
+# Reads price text and non-secret connection state only.
+VIEW_JS = """() => ({
+  connected: !!window.Echo?.connector?.pusher?.allChannels().some(c => c.name.startsWith('private-Products.') && c.subscribed) && window.Echo?.connector?.pusher?.connection?.state === 'connected',
+  rows: Array.from(document.querySelectorAll('[id^="product-card-"]')).filter(e => /^product-card-\\d+$/.test(e.id)).map(e => {
+    const values = Array.from(e.querySelectorAll('a')).map(a => a.textContent.trim());
+    // The product's name: the card's first text outside the price links that
+    // isn't a number or a column label.
+    const texts = [];
+    const walk = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (n.parentElement && n.parentElement.closest('a')) continue;
+      const t = n.textContent.replace(/\\s+/g, ' ').trim();
+      if (t) texts.push(t);
+    }
+    const name = texts.find(t => t.length <= 120 &&
+      !/^[\\d\\u06F0-\\u06F9\\u0660-\\u0669\\u066C,.\\s]+$/.test(t) &&
+      !['خرید', 'فروش', 'ندارید', 'قیمت خرید', 'قیمت فروش', 'ریال', 'تومان'].includes(t)) || null;
+    return {id: Number(e.id.split('-').pop()), values, name};
+  })
+})"""
 
 
 def start_control_server(loop, current_page, status, token, port, activity):
@@ -240,12 +266,17 @@ async def main():
                 print("Delivery paused; retrying:", delivery_error(error), flush=True)
                 await asyncio.sleep(delay)
                 delay = min(delay * 2, 30)
+    seen_sockets = set()
     def attach(ws):
         # Ignore all sockets except the previously verified Hanzaei price endpoint.
-        from urllib.parse import urlsplit
         u = urlsplit(ws.url)
+        where = "%s%s" % (u.hostname, u.path)  # never the query string
         if u.hostname != "goldmap.ir" or u.path != "/app/app-key-hanzaeigold":
+            if where not in seen_sockets:
+                seen_sockets.add(where)
+                print("Ignoring websocket:", where, flush=True)
             return
+        print("Live price socket attached.", flush=True)
         def received(frame):
             data = parse_frame(frame)
             if data:
@@ -260,7 +291,11 @@ async def main():
             str(PROFILE_DIR), headless=HEADLESS, executable_path=CHROMIUM_EXECUTABLE,
             args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
         )
-        context.on("page", lambda page: page.on("websocket", attach))
+        # A persistent profile starts with a tab already open, so listen on that one too —
+        # context.on("page") only fires for tabs opened later.
+        context.on("page", lambda pg: pg.on("websocket", attach))
+        for existing in context.pages:
+            existing.on("websocket", attach)
         page = context.pages[0] if context.pages else await context.new_page()
         sender_task = asyncio.create_task(sender())
         status = {"loggedIn": False, "connected": False, "rows": 0, "lastCheck": None}
@@ -276,7 +311,6 @@ async def main():
                 print("Control page ready for the dashboard (127.0.0.1:%d)." % CONTROL_PORT, flush=True)
             except OSError as error:
                 print("Control server not started:", error, flush=True)
-        ticks = 0
         last_snapshot = None
         try:
             print("Opening Hanzaei. Log in normally in the browser. Credentials stay in that browser.", flush=True)
@@ -287,66 +321,59 @@ async def main():
             loop = asyncio.get_running_loop()
             last_connected = loop.time()
             last_reload = loop.time()
-            failures = 0
+            last_heartbeat = 0.0
+            failing_since = None
+
+            def amount(text):
+                digits = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
+                cleaned = ''.join(c for c in digits if c.isdigit())
+                return int(cleaned) if cleaned else None
+
             while not page.is_closed():
-                await asyncio.sleep(10)
+                await asyncio.sleep(POLL_SECONDS)
+                now = loop.time()
+                heartbeat_due = now - last_heartbeat >= HEARTBEAT_SECONDS
                 try:
-                    # Read price text and non-secret connection state only.
-                    view = await page.evaluate("""() => ({
-                      connected: !!window.Echo?.connector?.pusher?.allChannels().some(c => c.name.startsWith('private-Products.') && c.subscribed) && window.Echo?.connector?.pusher?.connection?.state === 'connected',
-                      rows: Array.from(document.querySelectorAll('[id^="product-card-"]')).filter(e => /^product-card-\\d+$/.test(e.id)).map(e => {
-                        const values = Array.from(e.querySelectorAll('a')).map(a => a.textContent.trim());
-                        // The product's name: the card's first text outside the price links that
-                        // isn't a number or a column label.
-                        const texts = [];
-                        const walk = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
-                        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-                          if (n.parentElement && n.parentElement.closest('a')) continue;
-                          const t = n.textContent.replace(/\\s+/g, ' ').trim();
-                          if (t) texts.push(t);
-                        }
-                        const name = texts.find(t => t.length <= 120 &&
-                          !/^[\\d\\u06F0-\\u06F9\\u0660-\\u0669\\u066C,.\\s]+$/.test(t) &&
-                          !['خرید', 'فروش', 'ندارید', 'قیمت خرید', 'قیمت فروش', 'ریال', 'تومان'].includes(t)) || null;
-                        return {id: Number(e.id.split('-').pop()), values, name};
-                      })
-                    })""")
+                    view = await page.evaluate(VIEW_JS)
+                    failing_since = None
                     status.update(connected=bool(view["connected"]), rows=len(view["rows"]),
                                   loggedIn=bool(view["rows"]) or bool(view["connected"]),
                                   lastCheck=datetime.now(timezone.utc).isoformat())
-                    if ticks % 3 == 0 and view["rows"]:
-                        def amount(text):
-                            digits = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
-                            cleaned = ''.join(c for c in digits if c.isdigit())
-                            return int(cleaned) if cleaned else None
-                        rows = [{"id":r["id"], "buy":amount(r["values"][0]), "sell":amount(r["values"][1]),
+                    cards = [r for r in view["rows"] if r["id"] in IDS and len(r["values"]) == 2]
+                    # A card caught mid-redraw has an empty value; wait for the next read
+                    # rather than report a missing price.
+                    if cards and all(v.strip() for r in cards for v in r["values"]):
+                        rows = [{"id": r["id"], "buy": amount(r["values"][0]), "sell": amount(r["values"][1]),
                                  **({"name": r["name"][:120]} if r.get("name") else {})}
-                                for r in view["rows"] if r["id"] in IDS and len(r["values"]) == 2]
+                                for r in cards]
                         snapshot = json.dumps(rows, sort_keys=True)
-                        if rows and snapshot != last_snapshot:
-                            enqueue({"kind":"snapshot", "eventId":str(uuid.uuid4()), "products":rows})
+                        # Only when the board changed: an unchanged read can't undo a newer
+                        # websocket update that the page hasn't drawn yet.
+                        if snapshot != last_snapshot:
+                            enqueue({"kind": "snapshot", "eventId": str(uuid.uuid4()), "products": rows})
                             last_snapshot = snapshot
-                    enqueue({"kind":"heartbeat", "eventId":str(uuid.uuid4()), "connected":bool(view["connected"])})
-                    ticks += 1
-                    failures = 0
-                    now = loop.time()
-                    if view["connected"]:
-                        last_connected = now
-                    elif (now - last_connected > WATCHDOG_RELOAD_AFTER
-                          and now - last_reload > WATCHDOG_RELOAD_EVERY
-                          and now - activity["at"] > WATCHDOG_QUIET_AFTER_CONTROL):
-                        # Live prices stopped (network blip, socket dropped, site restarted):
-                        # reload the page. Never while someone is using the admin Collector page.
-                        print("Live connection lost; reloading the price page.", flush=True)
-                        last_reload = now
-                        try:
-                            await page.reload(wait_until="domcontentloaded", timeout=60000)
-                        except Exception:
-                            pass
+                    if heartbeat_due:
+                        last_heartbeat = now
+                        enqueue({"kind": "heartbeat", "eventId": str(uuid.uuid4()), "connected": bool(view["connected"])})
+                        if view["connected"]:
+                            last_connected = now
+                        elif (now - last_connected > WATCHDOG_RELOAD_AFTER
+                              and now - last_reload > WATCHDOG_RELOAD_EVERY
+                              and now - activity["at"] > WATCHDOG_QUIET_AFTER_CONTROL):
+                            # Live prices stopped (network blip, socket dropped, site restarted):
+                            # reload the page. Never while someone is using the admin Collector page.
+                            print("Live connection lost; reloading the price page.", flush=True)
+                            last_reload = now
+                            try:
+                                await page.reload(wait_until="domcontentloaded", timeout=60000)
+                            except Exception:
+                                pass
                 except Exception:
-                    enqueue({"kind":"heartbeat", "eventId":str(uuid.uuid4()), "connected":False})
-                    failures += 1
-                    if failures >= 6:
+                    if heartbeat_due:
+                        last_heartbeat = now
+                        enqueue({"kind": "heartbeat", "eventId": str(uuid.uuid4()), "connected": False})
+                    failing_since = failing_since or now
+                    if now - failing_since >= 60:
                         # The browser stopped answering for a minute: exit so systemd starts a fresh one.
                         print("Browser not responding; exiting so the service restarts it.", flush=True)
                         raise SystemExit(1)
