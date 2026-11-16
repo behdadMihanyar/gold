@@ -39,7 +39,7 @@ log "Installing Playwright and Chromium for the $APP_USER user"
 runuser -u "$APP_USER" -- bash -c "
   cd '$APP_DIR/tools'
   python3 -m venv .venv
-  .venv/bin/pip install --no-audit --no-fund -q --upgrade pip playwright
+  .venv/bin/pip install -q --upgrade pip playwright
 "
 # Chromium's OS-level libraries (fonts, codecs, etc.) need root.
 "$APP_DIR/tools/.venv/bin/python" -m playwright install --with-deps chromium
