@@ -59,6 +59,9 @@ Description=Virtual display for the Gold price collector
 [Service]
 Type=simple
 User=$APP_USER
+# A lock file surviving an unclean exit (crash, OOM-kill) would otherwise make every
+# restart fail with "Server is already active for display $DISPLAY_NUM" forever.
+ExecStartPre=/bin/rm -f /tmp/.X$DISPLAY_NUM-lock
 ExecStart=/usr/bin/Xvfb :$DISPLAY_NUM -screen 0 1280x800x24 -nolisten tcp
 Restart=always
 RestartSec=3
