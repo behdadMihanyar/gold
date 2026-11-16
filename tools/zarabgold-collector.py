@@ -31,6 +31,9 @@ PROFILE_DIR = DATA_DIR / "chrome-profile"
 # Headless Chromium is easy for sites to detect and block; on a server, run Chromium
 # normally (headless=False) under a virtual display (Xvfb) instead — see deploy/collector-setup.sh.
 HEADLESS = os.environ.get("ZARABGOLD_HEADLESS", "false").lower() == "true"
+# Playwright's own browser download is blocked from some locations; deploy/collector-setup.sh
+# installs the OS's Chromium package instead and points here, rather than relying on that CDN.
+CHROMIUM_EXECUTABLE = os.environ.get("ZARABGOLD_CHROMIUM_EXECUTABLE") or None
 
 def receiver_endpoint(config):
     # Older WordPress downloads inserted JSON slash escapes into Python literals.
@@ -142,8 +145,8 @@ async def main():
         # A persistent context keeps the hanzaeigold.ir login across restarts: log in once
         # (see deploy/collector-setup.sh), and every later run reuses that same browser profile.
         context = await p.chromium.launch_persistent_context(
-            str(PROFILE_DIR), headless=HEADLESS,
-            args=["--disable-blink-features=AutomationControlled"],
+            str(PROFILE_DIR), headless=HEADLESS, executable_path=CHROMIUM_EXECUTABLE,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
         )
         context.on("page", lambda page: page.on("websocket", attach))
         page = context.pages[0] if context.pages else await context.new_page()

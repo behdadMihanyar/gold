@@ -35,14 +35,17 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y xvfb x11vnc python3-venv
 
-log "Installing Playwright and Chromium for the $APP_USER user"
+log "Installing Chromium (system package — Playwright's own download CDN is blocked from some locations)"
+apt-get install -y chromium
+CHROMIUM_BIN=$(command -v chromium || command -v chromium-browser || true)
+[ -n "$CHROMIUM_BIN" ] || die "chromium installed but its binary was not found on PATH."
+
+log "Installing Playwright (automation library only — using the Chromium above, not its own)"
 runuser -u "$APP_USER" -- bash -c "
   cd '$APP_DIR/tools'
   python3 -m venv .venv
   .venv/bin/pip install -q --upgrade pip playwright
 "
-# Chromium's OS-level libraries (fonts, codecs, etc.) need root.
-"$APP_DIR/tools/.venv/bin/python" -m playwright install --with-deps chromium
 
 mkdir -p "$APP_DIR/tools/.data"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR/tools/.data"
@@ -80,6 +83,7 @@ Environment=DISPLAY=:$DISPLAY_NUM
 Environment=ZARABGOLD_ENDPOINT=http://127.0.0.1/api/prices/ingest
 Environment=ZARABGOLD_RECEIVER_KEY=$RELAY_KEY
 Environment=ZARABGOLD_DATA_DIR=$APP_DIR/tools/.data
+Environment=ZARABGOLD_CHROMIUM_EXECUTABLE=$CHROMIUM_BIN
 ExecStart=$APP_DIR/tools/.venv/bin/python zarabgold-collector.py
 Restart=always
 RestartSec=5
