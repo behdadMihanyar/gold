@@ -257,7 +257,7 @@ IP=$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | a
 log "Done!  Open  http://$IP/"
 echo "Add an admin:    cd $APP_DIR/server && runuser -u $APP_USER -- node scripts/create-user.js <email> <password>"
 echo "Customers:       create them in the admin panel (Customers page)."
-RELAY_KEY=$(grep "^PRICE_RELAY_KEY=" "$ENV_FILE" | cut -d= -f2-)
+RELAY_KEY=$(grep "^PRICE_RELAY_KEY=" "$ENV_FILE" | cut -d= -f2- || true)
 echo "Price collector: ZARABGOLD_ENDPOINT=http://$IP/api/prices/ingest"
 echo "                 ZARABGOLD_RECEIVER_KEY=$RELAY_KEY   (keep secret; also in $ENV_FILE)"
 echo "API logs:        journalctl -u gold-api -f"

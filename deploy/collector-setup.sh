@@ -24,7 +24,8 @@ die()  { printf '\n\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
 id "$APP_USER" >/dev/null 2>&1 || die "User '$APP_USER' not found — run deploy/setup.sh first."
 
 ENV_FILE="$APP_DIR/server/.env"
-RELAY_KEY=$(grep '^PRICE_RELAY_KEY=' "$ENV_FILE" 2>/dev/null | cut -d= -f2-)
+[ -f "$ENV_FILE" ] || die "$ENV_FILE not found — run deploy/setup.sh first."
+RELAY_KEY=$(grep '^PRICE_RELAY_KEY=' "$ENV_FILE" | cut -d= -f2- || true)
 [ -n "$RELAY_KEY" ] || die "PRICE_RELAY_KEY not set in $ENV_FILE — run deploy/setup.sh first (it generates one)."
 IP=$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')
 
