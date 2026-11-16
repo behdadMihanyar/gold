@@ -13,7 +13,11 @@ set -euo pipefail
 
 APP_DIR=/opt/gold
 APP_USER=gold
+# Pick a display number nothing else on this (possibly shared) server is already using.
 DISPLAY_NUM=99
+while [ -e "/tmp/.X11-unix/X$DISPLAY_NUM" ] || [ -e "/tmp/.X$DISPLAY_NUM-lock" ]; do
+  DISPLAY_NUM=$((DISPLAY_NUM + 1))
+done
 VNC_PORT=5999 # only listens on 127.0.0.1 — reach it through an SSH tunnel, never expose it
 
 log()  { printf '\n\033[1;33m==> %s\033[0m\n' "$*"; }
@@ -30,6 +34,7 @@ RELAY_KEY=$(grep '^PRICE_RELAY_KEY=' "$ENV_FILE" | cut -d= -f2- || true)
 IP=$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')
 
 # ---------------------------------------------------------------- packages
+log "Using display :$DISPLAY_NUM for the virtual display"
 log "Installing system packages (Xvfb, x11vnc, Python, Chromium's dependencies)"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
