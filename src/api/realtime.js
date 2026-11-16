@@ -36,3 +36,27 @@ export function useOrdersRealtime(handler, sides = ["buy", "sell"]) {
     return () => s.off("orders:changed", listener);
   }, [sidesKey]);
 }
+
+/** Subscribe to any server event (prices:changed, request:changed, ...). */
+export function useSocketEvent(name, handler) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+  useEffect(() => {
+    const s = getSocket();
+    const listener = (payload) => handlerRef.current(payload);
+    s.on(name, listener);
+    return () => s.off(name, listener);
+  }, [name]);
+}
+
+/** Run `handler` whenever the socket (re)connects — refetch after a gap. */
+export function useSocketReconnect(handler) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+  useEffect(() => {
+    const s = getSocket();
+    const listener = () => handlerRef.current();
+    s.io.on("reconnect", listener);
+    return () => s.io.off("reconnect", listener);
+  }, []);
+}

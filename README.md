@@ -18,6 +18,7 @@ There is no Supabase dependency anymore.
 ```
 server/                      API
   migrations/001_init.sql    schema (users, orders)
+  migrations/002_customer_panel.sql   roles, products, price feed, buy/sell requests
   scripts/create-user.js     create a staff account
   scripts/import-from-supabase.js   one-off data migration
   src/
@@ -26,8 +27,12 @@ server/                      API
     config.js                env validation
     db/                      pg pool + migration runner
     middleware/              auth, validation, error handling
-    modules/auth/            login / signup / logout / me
-    modules/orders/          routes → service → repository
+    modules/auth/            login / logout / me / change password
+    modules/orders/          ledger (admin only): routes → service → repository
+    modules/products/        price board, admin price editing
+    modules/prices/          collector ingest (X-Qasr-Relay-Key)
+    modules/requests/        customer buy/sell requests + admin accept/reject
+    modules/customers/       admin: create / disable customers, reset passwords
     realtime/                event bus + socket.io bridge
 src/
   api/                       fetch client, auth + orders API, realtime hook
@@ -63,8 +68,39 @@ npm install
 npm run dev
 ```
 
-Public sign-up is **off** by default (`ALLOW_SIGNUP=false`); staff accounts are
-created with `npm run user:create`.
+There is no public sign-up. Admins are created with `npm run user:create`
+(`<email> <password>`); customers are created by an admin on the **Customers** page
+(or `node scripts/create-user.js --customer <username> <password> --name 'Full name'`).
+
+## Customer panel
+
+Customers sign in with the username and password an admin gave them and land on a
+live price board (the 11 products of the collector). Tapping a product opens a sheet
+with **buy** / **sell**, a quantity and the total; the request goes to the admin
+inbox (**Customer requests**), who accepts or rejects it with an optional message.
+Both sides see every request with its Jalali date and time, and the customer gets an
+on-screen notification (toast, sound and bell badge) the moment it is answered.
+
+* Prices are read on the server and locked into the request; if the price moved
+  between the screen and the click the customer is asked to confirm the new one.
+* **Buy** = customer buys from the shop (green price); **sell** = customer sells to the
+  shop (red price). Accepting can also mirror the deal into the admin ledger (whole coins).
+* Prices come from the collector, or are typed by hand on the **Prices** page. If a
+  collector has connected and then goes silent (`FEED_STALE_SECONDS`), new requests are
+  blocked until it is back.
+
+### Price collector
+
+`tools/zarabgold-collector.py` is your collector adapted to this server (no key inside
+the file). Run it on a PC where you are logged in to the price source:
+
+```bash
+ZARABGOLD_ENDPOINT=http://<server>/api/prices/ingest \
+ZARABGOLD_RECEIVER_KEY=<PRICE_RELAY_KEY from server/.env> python tools/zarabgold-collector.py
+```
+
+Afterwards open **Prices** and, for each product, pick its collector id from the list.
+The key travels unencrypted until the site has a domain and SSL — add them soon.
 
 ## Moving your data off Supabase
 
@@ -85,12 +121,11 @@ dates, and prints any rows it had to skip.
 
 ## API
 
-All `/api/orders` routes require a session. `:side` is `buy` or `sell`.
+All `/api/orders` routes require an **admin** session. `:side` is `buy` or `sell`.
 
 | Method | Path                           | Notes                                                   |
 | ------ | ------------------------------ | ------------------------------------------------------- |
-| POST   | `/api/auth/login`              | `{ email, password }` → sets session cookie             |
-| POST   | `/api/auth/signup`             | only when `ALLOW_SIGNUP=true`                           |
+| POST   | `/api/auth/login`              | `{ identifier, password }` (email or username) → cookie |
 | POST   | `/api/auth/logout`             |                                                         |
 | GET    | `/api/auth/me`                 | current user                                            |
 | GET    | `/api/orders/:side`            | `?page=&pageSize=(≤500)&date=YYYY/MM/DD&q=name`         |
@@ -135,3 +170,20 @@ bash /opt/gold/deploy/setup.sh
 The script installs Node.js, PostgreSQL and nginx. It creates the database and writes `server/.env` with random secrets, builds the frontend and runs the API as the `gold-api` systemd service. nginx serves the site on port 80, and the script asks for the first admin account. To update later, run `bash /opt/gold/deploy/setup.sh` again.
 
 While the site is served over plain `http://`, `COOKIE_SECURE=false` is set in `server/.env`. After you add a domain and SSL, change it to `true` and run `systemctl restart gold-api`.
+
+
+### Customer panel API
+
+| Method | Path | Who | Notes |
+| ------ | ---- | --- | ----- |
+| GET | `/api/products` | any | price board (admins also get inactive items + unmapped collector ids) |
+| GET/POST | `/api/requests` | customer | list own / create `{ productId, side, quantity, quotedPrice, note?, clientKey? }` |
+| POST | `/api/requests/:id/cancel` | customer | only while pending |
+| GET/POST | `/api/requests/unseen`, `/seen` | customer | notifications |
+| GET | `/api/admin/requests` (+`/summary`) | admin | `?status=&side=&q=` |
+| POST | `/api/admin/requests/:id/accept` / `reject` | admin | `{ note?, recordInLedger? }` |
+| GET/POST/PATCH | `/api/admin/customers` | admin | create, disable, new password |
+| PATCH | `/api/admin/products/:id` | admin | prices, visibility, collector id |
+| POST | `/api/prices/ingest` | collector | header `X-Qasr-Relay-Key` |
+
+Socket.IO events: `prices:changed` (everyone), `request:changed` (admins and the owner).

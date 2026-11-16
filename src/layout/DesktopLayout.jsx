@@ -11,6 +11,8 @@ import coin from "../img/coin.svg";
 import home from "../img/home.svg";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { useAdminPending } from "../admin/useAdminPending";
+import { toPersianDigits } from "../utils/format";
 const DesktopLayout = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -18,6 +20,7 @@ const DesktopLayout = () => {
     await logout();
     navigate("/login", { replace: true });
   };
+  const pending = useAdminPending();
   const homeRoute = useLocation().pathname;
   return (
     <div>
@@ -78,6 +81,33 @@ const DesktopLayout = () => {
             >
               <img src={search} className="w-7 h-7" alt="سفارشات" />
               جست و جو
+            </NavLink>
+            <NavLink to="/requests" className={({ isActive }) =>
+                isActive
+                  ? "text-gray-800 flex gap-1 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  : "text-white flex gap-1 no-underline hover:scale-108 duration-200 mr-3"
+              }>
+              <span className="w-7 text-center text-xl">📥</span>
+              درخواست مشتریان
+              {pending > 0 && (
+                <span className="bg-amber-400 text-black text-xs font-bold rounded-full px-2 self-center">{toPersianDigits(pending)}</span>
+              )}
+            </NavLink>
+            <NavLink to="/customers" className={({ isActive }) =>
+                isActive
+                  ? "text-gray-800 flex gap-1 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  : "text-white flex gap-1 no-underline hover:scale-108 duration-200 mr-3"
+              }>
+              <span className="w-7 text-center text-xl">👥</span>
+              مشتریان
+            </NavLink>
+            <NavLink to="/prices" className={({ isActive }) =>
+                isActive
+                  ? "text-gray-800 flex gap-1 no-underline font-bold border-r-4 rounded-l-2xl border-gray-800 p-1 mr-3 shadow-2xl shadow-black"
+                  : "text-white flex gap-1 no-underline hover:scale-108 duration-200 mr-3"
+              }>
+              <span className="w-7 text-center text-xl">🏷️</span>
+              قیمت‌ها
             </NavLink>
             <NavLink
               to="/sms"

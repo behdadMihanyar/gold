@@ -4,10 +4,13 @@ import { CiMenuBurger } from "react-icons/ci";
 import { FaGithub } from "react-icons/fa";
 import { IoArrowBack } from "react-icons/io5";
 import { GrPowerShutdown } from "react-icons/gr";
+import { useAdminPending } from "../admin/useAdminPending";
+import { toPersianDigits } from "../utils/format";
 import { useAuth } from "../Context/AuthContext";
 const MobileLayout = ({ show, setShow }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const pending = useAdminPending();
   const handleLogout = async () => {
     await logout();
     navigate("/login", { replace: true });
@@ -65,6 +68,21 @@ const MobileLayout = ({ show, setShow }) => {
               <li>
                 <NavLink to="/search" onClick={() => setShow((prev) => !prev)}>
                   جست و جو
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/requests" onClick={() => setShow((prev) => !prev)}>
+                  درخواست مشتریان{pending > 0 ? ` (${toPersianDigits(pending)})` : ""}
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/customers" onClick={() => setShow((prev) => !prev)}>
+                  مشتریان
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/prices" onClick={() => setShow((prev) => !prev)}>
+                  قیمت‌ها
                 </NavLink>
               </li>
               <li>

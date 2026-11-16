@@ -128,9 +128,15 @@ JWT_SECRET=$(openssl rand -hex 48)
 JWT_EXPIRES_IN=7d
 # Site is served over plain http:// for now. Set to true after adding SSL.
 COOKIE_SECURE=false
-ALLOW_SIGNUP=false
 EOF
 fi
+
+# Shared secret for the price collector (added on updates too).
+if ! grep -q "^PRICE_RELAY_KEY=" "$ENV_FILE"; then
+  echo "PRICE_RELAY_KEY=$(openssl rand -hex 24)" >>"$ENV_FILE"
+  NEW_RELAY_KEY=1
+fi
+sed -i "/^ALLOW_SIGNUP=/d" "$ENV_FILE"
 chmod 600 "$ENV_FILE"
 
 DB_ENC=$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname='gold'")
@@ -249,5 +255,9 @@ fi
 
 IP=$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')
 log "Done!  Open  http://$IP/"
-echo "Add more users:  cd $APP_DIR/server && runuser -u $APP_USER -- node scripts/create-user.js <email> <password>"
+echo "Add an admin:    cd $APP_DIR/server && runuser -u $APP_USER -- node scripts/create-user.js <email> <password>"
+echo "Customers:       create them in the admin panel (Customers page)."
+RELAY_KEY=$(grep "^PRICE_RELAY_KEY=" "$ENV_FILE" | cut -d= -f2-)
+echo "Price collector: ZARABGOLD_ENDPOINT=http://$IP/api/prices/ingest"
+echo "                 ZARABGOLD_RECEIVER_KEY=$RELAY_KEY   (keep secret; also in $ENV_FILE)"
 echo "API logs:        journalctl -u gold-api -f"

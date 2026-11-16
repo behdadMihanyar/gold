@@ -28,14 +28,8 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const u = await authApi.login(email, password);
-    setUser(u);
-    return u;
-  }, []);
-
-  const signup = useCallback(async (email, password) => {
-    const u = await authApi.signup(email, password);
+  const login = useCallback(async (identifier, password) => {
+    const u = await authApi.login(identifier, password);
     setUser(u);
     return u;
   }, []);
@@ -50,7 +44,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

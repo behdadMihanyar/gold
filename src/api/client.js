@@ -4,11 +4,13 @@
 export const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 export class ApiError extends Error {
-  constructor(status, message, details) {
+  constructor(status, message, details, code, data) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.details = details;
+    this.code = code;
+    this.data = data;
   }
 }
 
@@ -40,6 +42,8 @@ export async function request(path, { method = "GET", body, query, signal } = {}
       res.status,
       payload?.error?.message ?? res.statusText,
       payload?.error?.details,
+      payload?.error?.code,
+      payload?.error?.data,
     );
   }
   return payload;
