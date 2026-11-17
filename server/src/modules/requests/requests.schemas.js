@@ -46,11 +46,24 @@ export const customerListQuery = z.object({
   ...page,
 });
 
+// A calendar day in Iran time, as YYYY-MM-DD (Gregorian). Empty → no filter.
+const day = z.preprocess(
+  (v) => (v === "" ? undefined : v),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .refine((v) => !Number.isNaN(Date.parse(`${v}T00:00:00Z`)), "Invalid date")
+    .optional(),
+);
+
+export const adminSummaryQuery = z.object({ date: day });
+
 export const adminListQuery = z.object({
   status: z.enum([...STATUSES, "all"]).default("all"),
   side: z.enum(["buy", "sell"]).optional(),
   userId: z.string().uuid().optional(),
   q: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().max(100).optional()),
+  date: day,
   ...page,
 });
 

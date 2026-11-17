@@ -18,14 +18,12 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default(""),
   // Set to "false" only when the site is served over plain HTTP (no domain/SSL yet).
   COOKIE_SECURE: z.enum(["true", "false"]).optional(),
-  // brsapi.ir key for the gold/currency price box (free tier key by default).
-  BRSAPI_KEY: z.string().min(1).default("FreeOmyTOvQelQcZdcQwNrggWfbKJKTu"),
   // Shared secret the price collector sends in `X-Qasr-Relay-Key`. Leave unset to
   // disable the ingest endpoint (prices are then edited by hand in the admin panel).
   PRICE_RELAY_KEY: z.string().min(24, "PRICE_RELAY_KEY must be at least 24 characters").optional(),
   // Customers cannot send requests when the price feed has been silent this long
   // (only once a collector has connected at least once). 0 turns the check off.
-  FEED_STALE_SECONDS: z.coerce.number().int().min(0).default(60),
+  FEED_STALE_SECONDS: z.coerce.number().int().min(0).default(30),
   // Local port of the collector's control server (admin "Collector" page).
   COLLECTOR_CONTROL_PORT: z.coerce.number().int().min(1).max(65535).default(4100),
 });
@@ -54,7 +52,6 @@ export const config = Object.freeze({
   priceRelayKey: env.PRICE_RELAY_KEY ?? null,
   feedStaleSeconds: env.FEED_STALE_SECONDS,
   collectorControlPort: env.COLLECTOR_CONTROL_PORT,
-  brsapiKey: env.BRSAPI_KEY,
   cookieSecure: env.COOKIE_SECURE
     ? env.COOKIE_SECURE === "true"
     : env.NODE_ENV === "production",

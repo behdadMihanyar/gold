@@ -25,6 +25,7 @@ const LogIn = () => {
     setError("");
     try {
       await login(identifier.trim(), password);
+      document.activeElement?.blur?.(); // let a phone drop the keyboard (and any zoom) before leaving
       navigate("/", { replace: true }); // "/" is the market for customers, the dashboard for admins
     } catch (err) {
       setError(MESSAGES[err.status] ?? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید.");
@@ -41,7 +42,7 @@ const LogIn = () => {
         <p>نام کاربری و رمز عبوری که از ما گرفته‌اید را وارد کنید.</p>
         <label className="gp-field">
           نام کاربری یا ایمیل
-          <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" autoCapitalize="none" required />
+          <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} required />
         </label>
         <label className="gp-field">
           رمز عبور

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { marketApi, requestsApi } from "../api/market";
-import { useSocketEvent, useSocketReconnect } from "../api/realtime";
+import { useSocketEvent, useSocketOnline, useSocketReconnect } from "../api/realtime";
 import { chime } from "./sound";
 
 const Ctx = createContext(null);
@@ -18,6 +18,7 @@ export function PanelProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [rev, setRev] = useState(0); // bumps when the customer's requests change
   const flashTimers = useRef({});
+  const online = useSocketOnline();
   const boardRef = useRef(new Map());
   useEffect(() => {
     boardRef.current = new Map(board.products.map((p) => [p.id, p]));
@@ -66,7 +67,9 @@ export function PanelProvider({ children }) {
     });
     for (const p of products) {
       const old = boardRef.current.get(p.id);
-      const dir = old && old.buyPrice !== p.buyPrice ? (p.buyPrice > (old.buyPrice ?? 0) ? "up" : "down") : null;
+      // Flash real moves only — not prices reappearing after the feed came back.
+      const moved = old && old.buyPrice !== null && p.buyPrice !== null && old.buyPrice !== p.buyPrice;
+      const dir = moved ? (p.buyPrice > old.buyPrice ? "up" : "down") : null;
       if (dir) {
         clearTimeout(flashTimers.current[p.id]);
         setFlash((f) => ({ ...f, [p.id]: dir }));
@@ -95,6 +98,10 @@ export function PanelProvider({ children }) {
     () => ({
       products: board.products,
       feed: board.feed,
+      // Prices may be shown only while they are known to be current: the feed is
+      // live and this screen is still receiving its updates.
+      pricesLive: online && !failed && !(board.feed && !board.feed.live),
+      offline: !online,
       loaded,
       failed,
       flash,
@@ -107,7 +114,7 @@ export function PanelProvider({ children }) {
       rev,
       bump: () => setRev((n) => n + 1),
     }),
-    [board, loaded, failed, flash, loadBoard, unseen, markSeen, toasts, pushToast, dismissToast, rev],
+    [board, online, loaded, failed, flash, loadBoard, unseen, markSeen, toasts, pushToast, dismissToast, rev],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

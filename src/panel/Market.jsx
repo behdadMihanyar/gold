@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fmtRial, clockTime } from "../utils/format";
 import { Coin } from "./bits";
 import { usePanel } from "./PanelContext";
 import ProductSheet from "./ProductSheet";
 
 export default function Market() {
-  const { products, feed, loaded, failed, flash, reload } = usePanel();
+  const { products, loaded, failed, offline, pricesLive, flash, reload } = usePanel();
   const [openId, setOpenId] = useState(null);
 
   const groups = useMemo(() => {
@@ -18,7 +18,11 @@ export default function Market() {
     return out;
   }, [products]);
   const open = products.find((p) => p.id === openId);
-  const stale = feed && !feed.live;
+  // Not live → no prices at all, and no open order sheet with an old price in it.
+  const hidden = loaded && !pricesLive;
+  useEffect(() => {
+    if (hidden) setOpenId(null);
+  }, [hidden]);
   const last = products
     .map((p) => p.updatedAt)
     .filter(Boolean)
@@ -34,15 +38,20 @@ export default function Market() {
             یک محصول را برای خرید یا فروش انتخاب کنید.
           </p>
         </div>
-        <span className={`gp-live${stale || failed ? " off" : ""}`}>
+        <span className={`gp-live${hidden ? " off" : ""}`}>
           <i />
-          {failed ? "قطع ارتباط" : stale ? "قیمت‌ها به‌روز نیست" : last ? `به‌روزرسانی ${clockTime(last)}` : "زنده"}
+          {hidden ? "قیمت‌ها متوقف است" : last ? `به‌روزرسانی ${clockTime(last)}` : "زنده"}
         </span>
       </div>
 
-      {stale && (
+      {hidden && !failed && (
         <div className="gp-banner warn" role="alert">
-          اتصال به منبع قیمت قطع است. تا برقراری دوباره، ثبت درخواست جدید ممکن نیست.
+          <span>
+            <b>قیمت‌ها موقتاً نمایش داده نمی‌شوند.</b>{" "}
+            {offline
+              ? "اتصال شما به سرور قطع شده است؛ به‌محض وصل شدن، قیمت‌های تازه خودکار نمایش داده می‌شوند."
+              : "ارتباط با منبع قیمت برقرار نیست؛ به‌محض برقراری، قیمت‌ها خودکار نمایش داده می‌شوند."}
+          </span>
         </div>
       )}
       {failed && (
@@ -74,7 +83,9 @@ export default function Market() {
               <span>بفروشید</span>
             </div>
             {g.items.map((p) => {
-              const none = p.buyPrice === null && p.sellPrice === null;
+              const buy = hidden ? null : p.buyPrice;
+              const sell = hidden ? null : p.sellPrice;
+              const none = buy === null && sell === null;
               return (
                 <button key={p.id} className="gp-row" disabled={none} onClick={() => setOpenId(p.id)}>
                   <span className="gp-pname">
@@ -84,13 +95,13 @@ export default function Market() {
                       <small>قیمت هر {p.priceUnit}</small>
                     </span>
                   </span>
-                  <span data-l="بخرید" className={`gp-price num ${p.buyPrice === null ? "none" : "buy"} ${flash[p.id] ?? ""}`}>
-                    {fmtRial(p.buyPrice)}
-                    {p.buyPrice !== null && <small>تومان</small>}
+                  <span data-l="بخرید" className={`gp-price num ${buy === null ? "none" : "buy"} ${hidden ? "" : flash[p.id] ?? ""}`}>
+                    {hidden ? "—" : fmtRial(buy)}
+                    {buy !== null && <small>تومان</small>}
                   </span>
-                  <span data-l="بفروشید" className={`gp-price num ${p.sellPrice === null ? "none" : "sell"} ${flash[p.id] ?? ""}`}>
-                    {fmtRial(p.sellPrice)}
-                    {p.sellPrice !== null && <small>تومان</small>}
+                  <span data-l="بفروشید" className={`gp-price num ${sell === null ? "none" : "sell"} ${hidden ? "" : flash[p.id] ?? ""}`}>
+                    {hidden ? "—" : fmtRial(sell)}
+                    {sell !== null && <small>تومان</small>}
                   </span>
                 </button>
               );
@@ -98,7 +109,7 @@ export default function Market() {
           </div>
         </section>
       ))}
-      {open && <ProductSheet product={open} stale={stale} onClose={() => setOpenId(null)} />}
+      {open && !hidden && <ProductSheet product={open} stale={!pricesLive} onClose={() => setOpenId(null)} />}
     </>
   );
 }

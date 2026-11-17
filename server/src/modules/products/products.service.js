@@ -22,7 +22,9 @@ export function effectivePrice(raw, adjust) {
  * sellPrice = what a customer receives when SELLING to the shop (shown red)
  * null      = not available («ندارید»)
  */
-export function toProduct(row, { admin = false } = {}) {
+export function toProduct(row, { admin = false, hidePrices = false } = {}) {
+  // While the live feed is down, customers never see a price: an old one would mislead.
+  const hide = hidePrices && !admin;
   const product = {
     id: row.id,
     code: row.code,
@@ -34,8 +36,8 @@ export function toProduct(row, { admin = false } = {}) {
     minQuantity: Number(row.min_quantity),
     maxQuantity: Number(row.max_quantity),
     step: Number(row.quantity_step),
-    buyPrice: effectivePrice(row.buy_price, row.buy_adjust),
-    sellPrice: effectivePrice(row.sell_price, row.sell_adjust),
+    buyPrice: hide ? null : effectivePrice(row.buy_price, row.buy_adjust),
+    sellPrice: hide ? null : effectivePrice(row.sell_price, row.sell_adjust),
     // The price is per `priceUnit`; one priceUnit is `pricePer` units (1 مثقال = 4.608 گرم).
     priceUnit: row.price_unit ?? row.unit,
     pricePer: Number(row.price_per ?? 1),
@@ -58,7 +60,7 @@ export function toProduct(row, { admin = false } = {}) {
  * Is the price feed trustworthy right now?
  *   manual  no collector has ever reported in → prices are edited by hand, always usable
  *   feed    a collector reports in; if it goes silent or loses its source, `live` turns
- *           false and customers cannot send requests (stale prices would be unsafe).
+ *           false: customers see no prices and cannot send requests.
  */
 export async function getFeedState(db = { query }) {
   const { rows } = await db.query(
@@ -91,7 +93,7 @@ export async function getBoard({ admin = false } = {}) {
     ),
     getFeedState(),
   ]);
-  const products = rows.map((r) => toProduct(r, { admin }));
+  const products = rows.map((r) => toProduct(r, { admin, hidePrices: !feed.live }));
   const times = products.map((p) => p.updatedAt).filter(Boolean).map((t) => new Date(t).getTime());
   const board = {
     products,

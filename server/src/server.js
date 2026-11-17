@@ -3,6 +3,7 @@ import { createApp } from "./app.js";
 import { config } from "./config.js";
 import { migrate } from "./db/migrate.js";
 import { pool } from "./db/pool.js";
+import { startFeedWatch, stopFeedWatch } from "./modules/products/feedWatch.js";
 import { attachRealtime } from "./realtime/socket.js";
 
 async function main() {
@@ -10,6 +11,7 @@ async function main() {
 
   const server = http.createServer(createApp());
   const io = attachRealtime(server);
+  startFeedWatch();
 
   server.listen(config.port, () => {
     console.log(`Gold API listening on http://localhost:${config.port} (${config.env})`);
@@ -17,6 +19,7 @@ async function main() {
 
   const shutdown = (signal) => {
     console.log(`${signal} received, shutting down…`);
+    stopFeedWatch();
     // io.close() disconnects sockets and also closes the underlying HTTP server.
     io.close(async () => {
       await pool.end();

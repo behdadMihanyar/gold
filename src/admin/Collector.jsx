@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "../api/market";
 import { API_URL } from "../api/client";
 import "../panel/panel.css";
-import { clockTime, toPersianDigits } from "../utils/format";
+import { clockTime, jalaliDate, toPersianDigits } from "../utils/format";
 
 const SHOT_URL = `${API_URL}/api/admin/collector/screenshot`;
 
@@ -12,25 +12,187 @@ const KEYS = [
   ["Backspace", "پاک کردن یک حرف"],
 ];
 
-/**
- * Shows the price collector's browser (running on the server) as a live picture.
- * Click on the picture to click there; type in the box below to type into the
- * page. Used for the one-time hanzaeigold.ir login.
- */
-export default function Collector() {
-  const [shot, setShot] = useState(null); // object URL of the latest screenshot
+const when = (iso) => (iso ? `${jalaliDate(iso)} ساعت ${clockTime(iso)}` : "");
+
+/** One line saying what the collector is doing, and how worried to be. */
+function describe(state, down) {
+  if (down) return ["err", "کالکتور روی سرور در حال اجرا نیست. روی سرور اجرا کنید:  systemctl restart gold-collector"];
+  if (!state) return ["warn", "در حال دریافت وضعیت کالکتور…"];
+  const auto = state.autoLogin ?? {};
+  if (state.connected) {
+    const n = state.rows ? ` (${toPersianDigits(state.rows)} محصول)` : "";
+    return ["ok", `متصل است و قیمت‌ها زنده دریافت می‌شوند${n}.`];
+  }
+  if (auto.state === "working" || auto.state === "pending") return ["warn", "در حال ورود خودکار به حساب هنزایی…"];
+  if (auto.state === "rejected") {
+    return ["err", `هنزایی اطلاعات ورود را نپذیرفت${auto.message ? `: «${auto.message}»` : ""}. شماره و رمز را بررسی و دوباره ذخیره کنید.`];
+  }
+  if (state.loginPage && !auto.configured) {
+    return ["err", "کالکتور از حساب هنزایی خارج است. شماره و رمز حساب را در پایین ذخیره کنید تا خودش وارد شود."];
+  }
+  if (auto.state === "error") {
+    return ["warn", `ورود انجام نشد (احتمالاً مشکل شبکه). کالکتور خودش دوباره تلاش می‌کند${auto.nextTryAt ? `، حدود ساعت ${clockTime(auto.nextTryAt)}` : ""}.`];
+  }
+  return ["warn", "اتصال زنده به هنزایی برقرار نیست؛ کالکتور خودکار در حال برقراری دوباره است. تا آن موقع قیمتی به مشتریان نشان داده نمی‌شود."];
+}
+
+function AccountCard({ state, onChanged }) {
+  const auto = state?.autoLogin ?? {};
+  const [editing, setEditing] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // [tone, text]
+
+  const showForm = !auto.configured || editing;
+
+  async function run(fn, ok) {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await fn();
+      if (ok) setMsg(["ok", ok]);
+      onChanged();
+      return true;
+    } catch (e) {
+      setMsg(["err", e.code === "COLLECTOR_DOWN" ? "کالکتور روی سرور در حال اجرا نیست." : "انجام نشد؛ دوباره تلاش کنید."]);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function save(e) {
+    e.preventDefault();
+    const done = await run(
+      () => adminApi.collector("account", { username: username.trim(), password }),
+      "ذخیره شد. کالکتور در صورت نیاز همین حالا وارد می‌شود.",
+    );
+    if (done) {
+      setPassword("");
+      setUsername("");
+      setEditing(false);
+      setShow(false);
+    }
+  }
+
+  return (
+    <section className="gp-acct" aria-labelledby="acct-h">
+      <h2 id="acct-h">ورود خودکار به هنزایی</h2>
+      <p className="gp-sub">
+        هر بار که هنزایی کالکتور را از حساب خارج کند، کالکتور با همین اطلاعات خودش دوباره وارد می‌شود و
+        دریافت قیمت‌ها بدون دخالت شما ادامه پیدا می‌کند.
+      </p>
+
+      {!showForm && (
+        <>
+          <div className="gp-acct-row">
+            <span>
+              حساب ذخیره‌شده: <b dir="ltr" className="num">{auto.username}</b>
+            </span>
+            {auto.lastSuccessAt && <span className="gp-sub" style={{ margin: 0 }}>آخرین ورود خودکار: {when(auto.lastSuccessAt)}</span>}
+          </div>
+          <div className="gp-actions">
+            {!state?.connected && (
+              <button className="gp-btn buy" disabled={busy} onClick={() => run(() => adminApi.collector("login-now"), "درخواست ورود فرستاده شد.")}>
+                ورود همین حالا
+              </button>
+            )}
+            <button className="gp-btn ghost" disabled={busy} onClick={() => { setEditing(true); setMsg(null); }}>
+              تغییر شماره یا رمز
+            </button>
+            {confirmClear ? (
+              <>
+                <button
+                  className="gp-btn sell"
+                  disabled={busy}
+                  onClick={async () => { await run(() => adminApi.collector("account/clear"), "اطلاعات ورود حذف شد."); setConfirmClear(false); }}
+                >
+                  بله، حذف شود
+                </button>
+                <button className="gp-btn ghost" disabled={busy} onClick={() => setConfirmClear(false)}>انصراف</button>
+              </>
+            ) : (
+              <button className="gp-btn ghost" disabled={busy} onClick={() => setConfirmClear(true)}>حذف اطلاعات ورود</button>
+            )}
+          </div>
+          {confirmClear && (
+            <p className="gp-sub" style={{ marginTop: 8 }}>بدون این اطلاعات، اگر هنزایی از حساب خارج کند، ورود دوباره دستی خواهد بود.</p>
+          )}
+        </>
+      )}
+
+      {showForm && (
+        <form className="gp-acct-form" onSubmit={save} autoComplete="off">
+          <label className="gp-field">
+            شماره همراه حساب هنزایی
+            <input
+              inputMode="tel"
+              dir="ltr"
+              required
+              minLength={3}
+              maxLength={64}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="09xxxxxxxxx"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          </label>
+          <label className="gp-field">
+            رمز عبور هنزایی
+            <span className="gp-pass">
+              <input
+                type={show ? "text" : "password"}
+                dir="ltr"
+                required
+                maxLength={200}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <button type="button" onClick={() => setShow((v) => !v)} aria-pressed={show}>
+                {show ? "پنهان" : "نمایش"}
+              </button>
+            </span>
+          </label>
+          <p className="gp-note">
+            رمز فقط روی سرور خودتان، در پوشهٔ کالکتور و با دسترسی محدود، نگه داشته می‌شود و هیچ‌وقت دوباره در داشبورد
+            نمایش داده یا به مرورگر فرستاده نمی‌شود.
+          </p>
+          <div className="gp-actions">
+            <button className="gp-btn buy" disabled={busy || !username.trim() || !password}>
+              {busy ? "در حال ذخیره…" : "ذخیره و ورود"}
+            </button>
+            {auto.configured && (
+              <button type="button" className="gp-btn ghost" disabled={busy} onClick={() => { setEditing(false); setPassword(""); setUsername(""); }}>
+                انصراف
+              </button>
+            )}
+          </div>
+        </form>
+      )}
+      {msg && <div className={`gp-banner ${msg[0]}`} style={{ marginTop: 12, marginBottom: 0 }} role="status">{msg[1]}</div>}
+    </section>
+  );
+}
+
+/** The collector's browser as a live picture, clickable and typeable. Polls only while open. */
+function ManualControl({ state, open }) {
+  const [shot, setShot] = useState(null);
   const [down, setDown] = useState(false);
-  const [state, setState] = useState(null);
   const [text, setText] = useState("");
   const [secret, setSecret] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const timer = useRef(null);
-  const alive = useRef(true);
+  const alive = useRef(false);
   const lastUrl = useRef(null);
 
-  // Screenshot loop: fetch the next one only after the previous arrived.
-  const refresh = useCallback(async (delay = 1200) => {
+  const refresh = useCallback((delay = 1200) => {
     clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       try {
@@ -52,18 +214,15 @@ export default function Collector() {
   }, []);
 
   useEffect(() => {
+    if (!open) return undefined;
     alive.current = true;
     refresh(0);
-    const loadState = () => adminApi.collectorState().then(setState).catch(() => setState(null));
-    loadState();
-    const t = setInterval(loadState, 3000);
     return () => {
       alive.current = false;
       clearTimeout(timer.current);
-      clearInterval(t);
-      if (lastUrl.current) URL.revokeObjectURL(lastUrl.current);
     };
-  }, [refresh]);
+  }, [open, refresh]);
+  useEffect(() => () => lastUrl.current && URL.revokeObjectURL(lastUrl.current), []);
 
   async function act(action, body, ok) {
     setBusy(true);
@@ -82,10 +241,8 @@ export default function Collector() {
   function clickOnShot(e) {
     const img = e.currentTarget;
     const rect = img.getBoundingClientRect();
-    const scaleX = (state?.width ?? img.naturalWidth) / rect.width;
-    const scaleY = (state?.height ?? img.naturalHeight) / rect.height;
-    const x = Math.round((e.clientX - rect.left) * scaleX);
-    const y = Math.round((e.clientY - rect.top) * scaleY);
+    const x = Math.round((e.clientX - rect.left) * ((state?.width ?? img.naturalWidth) / rect.width));
+    const y = Math.round((e.clientY - rect.top) * ((state?.height ?? img.naturalHeight) / rect.height));
     act("click", { x, y });
   }
 
@@ -96,32 +253,12 @@ export default function Collector() {
     setText("");
   }
 
-  const live = state?.connected || state?.rows > 0;
   return (
-    <div className="gp embed">
-      <h1 className="gp-h1">اتصال کالکتور قیمت</h1>
+    <>
       <p className="gp-sub">
-        این تصویرِ زندهٔ مرورگرِ کالکتور روی سرور است. یک بار در هانزایی وارد شوید تا قیمت‌ها خودکار به‌روز شوند.
+        معمولاً لازم نیست. اگر هنزایی چیزی غیرعادی خواست (مثلاً تأیید یا پیام خاص)، از اینجا مرورگر کالکتور را ببینید و
+        روی تصویر کلیک کنید یا متن بفرستید. در این مدت ورود خودکار چند ثانیه صبر می‌کند تا با کار شما تداخل نکند.
       </p>
-
-      <div className={`gp-banner ${down ? "err" : live ? "ok" : "warn"}`} role="status">
-        {down
-          ? "کالکتور در دسترس نیست. روی سرور اجرا کنید:  systemctl restart gold-collector"
-          : live
-            ? `متصل است و قیمت‌ها دریافت می‌شوند${state?.rows ? ` (${toPersianDigits(state.rows)} محصول در صفحه)` : ""}.${state?.lastCheck ? ` آخرین بررسی ${clockTime(state.lastCheck)}` : ""}`
-            : "هنوز وارد هانزایی نشده‌اید یا صفحهٔ قیمت‌ها باز نیست. مراحل زیر را انجام دهید."}
-      </div>
-
-      {!live && !down && (
-        <ol className="gp-steps">
-          <li>در تصویر زیر روی کادر «نام کاربری» (یا شماره موبایل) کلیک کنید.</li>
-          <li>آن را در کادر پایین تصویر بنویسید و «ارسال متن» را بزنید.</li>
-          <li>روی کادر رمز کلیک کنید، تیک «مخفی» را بزنید، رمز را بنویسید و بفرستید.</li>
-          <li>دکمهٔ ورودِ سایت را در تصویر بزنید (یا «Enter»). اگر کد پیامکی خواست، همین‌طور واردش کنید.</li>
-          <li>وقتی صفحهٔ قیمت‌ها را دیدید، کادر بالا سبز می‌شود. تمام!</li>
-        </ol>
-      )}
-
       <div className="gp-screen">
         {shot ? (
           <img src={shot} alt="مرورگر کالکتور" onClick={clickOnShot} draggable={false} />
@@ -135,7 +272,6 @@ export default function Collector() {
           {state.url}
         </div>
       )}
-
       <form className="gp-typebar" onSubmit={sendText}>
         <input
           className="gp-input"
@@ -151,7 +287,6 @@ export default function Collector() {
         </label>
         <button className="gp-btn buy" disabled={busy || !text}>ارسال متن</button>
       </form>
-
       <div className="gp-actions" style={{ marginTop: 10 }}>
         {KEYS.map(([key, label]) => (
           <button key={key} className="gp-btn ghost" disabled={busy} onClick={() => act("key", { key })}>{label}</button>
@@ -159,9 +294,54 @@ export default function Collector() {
         <button className="gp-btn ghost" disabled={busy} onClick={() => act("scroll", { dy: -500 })}>بالا</button>
         <button className="gp-btn ghost" disabled={busy} onClick={() => act("scroll", { dy: 500 })}>پایین</button>
         <button className="gp-btn ghost" disabled={busy} onClick={() => act("reload", {})}>بارگذاری دوباره</button>
-        <button className="gp-btn ghost" disabled={busy} onClick={() => act("home", {})}>صفحهٔ اصلی هانزایی</button>
+        <button className="gp-btn ghost" disabled={busy} onClick={() => act("home", {})}>صفحهٔ اصلی هنزایی</button>
       </div>
       {msg && <p className="gp-sub" style={{ marginTop: 8 }}>{msg}</p>}
+    </>
+  );
+}
+
+export default function Collector() {
+  const [state, setState] = useState(null);
+  const [down, setDown] = useState(false);
+  const [manual, setManual] = useState(false);
+
+  const loadState = useCallback(
+    () =>
+      adminApi
+        .collectorState()
+        .then((s) => {
+          setState(s);
+          setDown(false);
+        })
+        .catch(() => setDown(true)),
+    [],
+  );
+  useEffect(() => {
+    loadState();
+    const t = setInterval(loadState, 2500);
+    return () => clearInterval(t);
+  }, [loadState]);
+
+  const [tone, text] = describe(state, down);
+  return (
+    <div className="gp embed">
+      <h1 className="gp-h1">اتصال به هنزایی</h1>
+      <p className="gp-sub">قیمت‌ها از حساب شما در هنزایی خوانده و لحظه‌ای برای مشتریان به‌روز می‌شود.</p>
+
+      <div className={`gp-banner ${tone}`} role="status" aria-live="polite">
+        <span>
+          {text}
+          {state?.lastCheck && !down && <small className="gp-banner-time"> آخرین بررسی {clockTime(state.lastCheck)}</small>}
+        </span>
+      </div>
+
+      {!down && state && <AccountCard state={state} onChanged={loadState} />}
+
+      <details className="gp-manual" open={manual} onToggle={(e) => setManual(e.currentTarget.open)}>
+        <summary>کنترل دستی مرورگر کالکتور</summary>
+        <ManualControl state={state} open={manual} />
+      </details>
     </div>
   );
 }

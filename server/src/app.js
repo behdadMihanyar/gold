@@ -12,7 +12,6 @@ import { ordersRouter } from "./modules/orders/orders.routes.js";
 import { pricesRouter } from "./modules/prices/prices.routes.js";
 import { adminProductsRouter, productsRouter } from "./modules/products/products.routes.js";
 import { adminRequestsRouter, requestsRouter } from "./modules/requests/requests.routes.js";
-import { ratesRouter } from "./modules/rates/rates.routes.js";
 
 export function createApp() {
   const app = express();
@@ -34,7 +33,6 @@ export function createApp() {
 
   app.use("/api/auth", authRouter);
   app.use("/api/orders", ordersRouter);
-  app.use("/api/rates", ratesRouter);
   app.use("/api/prices", pricesRouter);
   app.use("/api/products", productsRouter);
   app.use("/api/requests", requestsRouter);

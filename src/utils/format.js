@@ -55,10 +55,10 @@ export const clockTime = (v) =>
         .replace(/\d/g, (d) => PERSIAN_DIGITS[d])
     : "";
 
-/** 106220000 → "۱۰۶٬۲۲۰٬۰۰۰" ; null → "ندارید" */
+/** 106220000 → "۱۰۶٬۲۲۰٬۰۰۰" ; null → "موجود نیست" */
 export const fmtRial = (v) =>
   v === null || v === undefined
-    ? "ندارید"
+    ? "موجود نیست"
     : toPersianDigits(Number(v).toLocaleString("en-US").replace(/,/g, "٬"));
 
 /** 2 → "۲" ; 0.5 → "۰٫۵" */

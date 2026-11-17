@@ -180,6 +180,12 @@ EOF
 systemctl daemon-reload
 systemctl enable gold-api >/dev/null
 systemctl restart gold-api
+# The price collector (installed by deploy/collector-setup.sh) runs code from this
+# checkout too: restart it so updates to it take effect.
+if systemctl cat gold-collector.service >/dev/null 2>&1; then
+  log "Restarting the price collector"
+  systemctl restart gold-collector || true
+fi
 
 # ---------------------------------------------------------------- nginx
 log "Configuring nginx"

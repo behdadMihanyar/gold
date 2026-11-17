@@ -86,8 +86,9 @@ on-screen notification (toast, sound and bell badge) the moment it is answered.
 * **Buy** = customer buys from the shop (green price); **sell** = customer sells to the
   shop (red price). Accepting can also mirror the deal into the admin ledger (whole coins).
 * Prices come from the collector, or are typed by hand on the **Prices** page. If a
-  collector has connected and then goes silent (`FEED_STALE_SECONDS`), new requests are
-  blocked until it is back.
+  collector has connected and then loses Hanzaei or goes silent (`FEED_STALE_SECONDS`,
+  default 30 s), customers see **no prices at all** and cannot send requests until it is
+  back; their screens switch within a couple of seconds, both ways.
 
 ### Price collector
 
@@ -106,12 +107,18 @@ The key travels unencrypted until the site has a domain and SSL — add them soo
 
 `bash deploy/collector-setup.sh` (run once, after `deploy/setup.sh`) installs the
 collector as a systemd service (`gold-collector`) under a virtual display
-(`gold-display`), both restarting automatically on crash or reboot. It keeps its
-hanzaeigold.ir login in a browser profile on disk, so you only log in once: open
-the admin page **اتصال کالکتور** (`/collector`), which shows the collector's browser
-as a live picture — click and type there to log in. (The collector serves this on
-127.0.0.1:4100, protected by `PRICE_RELAY_KEY`; the API proxies it for admins only.
-`gold-collector-login` + an SSH-tunnelled VNC viewer still works as an alternative.)
+(`gold-display`), both restarting automatically on crash or reboot. `deploy/setup.sh`
+restarts it on every update.
+
+Sign-in is automatic: on the admin page **اتصال به هنزایی** (`/collector`) save the
+Hanzaei mobile number and password once. The collector keeps them in
+`tools/.data/ZarabGoldWordPressRelay/hanzaei-account.json` (mode 0600, owned by the
+service user — never in the database, never sent back to a browser) and signs in again
+by itself whenever Hanzaei logs it out. If Hanzaei rejects the account it waits 30 min
+before trying again (so the account can't get locked); saving it again or "ورود همین
+حالا" retries at once. The same page can still show the collector's browser as a live
+picture for clicking/typing by hand. (The collector serves this on 127.0.0.1:4100,
+protected by `PRICE_RELAY_KEY`; the API proxies it for admins only.)
 
 ```
 systemctl status gold-collector     # running?
@@ -120,16 +127,19 @@ journalctl -u gold-collector -f     # live log
 
 Once logged in it runs unattended:
 
-* Every price change Hanzaei pushes over its websocket is forwarded at once (plus a full
-  snapshot every 30 s as a safety net); the customer board updates live via Socket.IO.
+* Every price change Hanzaei pushes over its websocket is forwarded at once (the board is
+  also re-read every second as a safety net); the customer board updates live via Socket.IO.
+* Prices only count as live while the page is connected and its board was read since the
+  connection was last lost: after a gap the page is reloaded first, so old numbers are
+  never shown as current.
 * Hanzaei products are linked to ours automatically by name (word order, digit script and
   ي/ك don't matter; ambiguous names are skipped). Anything left over can be picked by name
   on the **Prices** page.
-* If live prices stop for 90 s the page is reloaded (never while someone is using the
+* If live prices stop for 45 s the page is reloaded (not while an admin is clicking in the
   Collector page); if the browser stops answering for a minute the service restarts it.
   It also restarts once a day and is capped at 2 GB of memory. Logins survive all of this.
-* If Hanzaei itself logs the account out, customers see "prices not up to date" and can't
-  send requests until an admin logs in again on the Collector page.
+* If Hanzaei logs the account out, prices are hidden from customers at once and the
+  collector signs in again by itself.
 
 ## Moving your data off Supabase
 

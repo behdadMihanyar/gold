@@ -8,9 +8,11 @@ import { HttpError } from "../../utils/httpError.js";
 
 /**
  * Admin-only bridge to the price collector's local control server
- * (tools/zarabgold-collector.py, 127.0.0.1 only). Lets an admin see the collector's
- * browser and click/type into it from the dashboard — used for the one-time
- * hanzaeigold.ir login, instead of a VNC session.
+ * (tools/zarabgold-collector.py, 127.0.0.1 only):
+ *  - save the Hanzaei account the collector uses to sign in again by itself
+ *    whenever the site logs it out (the password is stored by the collector on
+ *    this server and is never sent back to any browser);
+ *  - see the collector's browser and click/type into it by hand if ever needed.
  */
 export const collectorRouter = Router();
 collectorRouter.use(requireAuth, requireRole("admin"));
@@ -33,7 +35,9 @@ async function callCollector(path, { method = "GET", body, timeout = 30_000 } = 
   } catch {
     throw HttpError.unavailable("The collector is not running", { code: "COLLECTOR_DOWN" });
   }
-  if (res.status === 400) throw HttpError.badRequest("The collector refused this action");
+  if (res.status === 400) {
+    throw HttpError.badRequest("The collector refused this action", undefined, { code: "COLLECTOR_REFUSED" });
+  }
   if (!res.ok) throw HttpError.unavailable("The collector could not do that right now", { code: "COLLECTOR_BUSY" });
   return res;
 }
@@ -69,3 +73,30 @@ for (const [name, schema] of Object.entries(actions)) {
     res.json({ ok: true });
   });
 }
+
+// Persian/Arabic digits typed on a phone keyboard are fine.
+const latinDigits = (v) =>
+  v.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+
+const accountBody = z.object({
+  username: z.string().trim().transform(latinDigits).pipe(z.string().min(3).max(64)),
+  password: z.string().min(1).max(200),
+});
+
+// POST /api/admin/collector/account   save the Hanzaei account (and sign in now)
+collectorRouter.post("/account", validate(accountBody), async (req, res) => {
+  await callCollector("/account", { method: "POST", body: req.valid.body });
+  res.json({ ok: true });
+});
+
+// POST /api/admin/collector/account/clear   forget it
+collectorRouter.post("/account/clear", async (_req, res) => {
+  await callCollector("/account/clear", { method: "POST", body: {} });
+  res.json({ ok: true });
+});
+
+// POST /api/admin/collector/login-now   sign in right away (also retries a rejected account)
+collectorRouter.post("/login-now", async (_req, res) => {
+  await callCollector("/login-now", { method: "POST", body: {} });
+  res.json({ ok: true });
+});

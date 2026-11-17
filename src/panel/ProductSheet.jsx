@@ -196,7 +196,7 @@ export default function ProductSheet({ product: p, stale, onClose }) {
                   onClick={() => { setSide(s); setError(""); }}
                 >
                   <b>{label}</b>
-                  <span className="num">{value === null ? "ندارید" : fmtRial(value)}</span>
+                  <span className="num">{fmtRial(value)}</span>
                 </button>
               ))}
             </div>

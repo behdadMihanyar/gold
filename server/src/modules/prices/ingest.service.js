@@ -1,6 +1,7 @@
 import { withTransaction } from "../../db/pool.js";
 import { emitPricesChanged } from "../../realtime/events.js";
 import { COLUMNS as PRODUCT_COLUMNS, getFeedState, toProduct } from "../products/products.service.js";
+import { checkFeed } from "../products/feedWatch.js";
 import { autoMapByName } from "./automap.js";
 import { normalizePrice } from "./prices.schemas.js";
 
@@ -35,7 +36,7 @@ export async function applyIngest(body) {
                 last_heartbeat_at = GREATEST(last_heartbeat_at, $2)`,
         [Boolean(body.connected), at],
       );
-      return [];
+      return null;
     }
 
     // New collector ids whose names match a product get linked before prices apply,
@@ -84,8 +85,14 @@ export async function applyIngest(body) {
     return updated;
   });
 
+  if (changed === null) {
+    // A heartbeat may have switched the feed on or off: tell screens right away.
+    await checkFeed();
+    return { changed: 0 };
+  }
   if (changed.length) {
-    emitPricesChanged(changed.map((r) => toProduct(r)), await getFeedState());
+    const feed = await getFeedState();
+    emitPricesChanged(changed.map((r) => toProduct(r, { hidePrices: !feed.live })), feed);
   }
   return { changed: changed.length };
 }

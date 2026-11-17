@@ -6,8 +6,6 @@ import order from "../img/order.svg";
 import search from "../img/search.svg";
 import addorder from "../img/addorder.svg";
 import sms from "../img/sms.svg";
-import dollor from "../img/dollor.svg";
-import coin from "../img/coin.svg";
 import home from "../img/home.svg";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -115,7 +113,7 @@ const DesktopLayout = () => {
                   : "text-white flex gap-1 no-underline hover:scale-108 duration-200 mr-3"
               }>
               <span className="w-7 text-center text-xl">🔌</span>
-              اتصال کالکتور
+              اتصال به هنزایی
             </NavLink>
             <NavLink
               to="/sms"
@@ -128,29 +126,6 @@ const DesktopLayout = () => {
               <img src={sms} className="w-7 h-7" alt="سفارشات" />
               پنل پیامکی
             </NavLink>
-            <NavLink
-              to="https://behdad.vercel.app/"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-gray-800 flex no-underline font-bold border-r-4 border-amber-600 p-1 mr-3 "
-                  : "text-white flex no-underline hover:scale-108 duration-200 mr-3"
-              }
-            >
-              <img src={dollor} className="w-7 h-7" alt="سفارشات" />
-              نرخ ارز
-            </NavLink>
-            <NavLink
-              to="https://behdad.vercel.app/gold"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-sky-400 flex no-underline mr-3"
-                  : "text-white flex no-underline hover:scale-110 duration-200 mr-3"
-              }
-            >
-              <img src={coin} className="w-7 h-7" alt="سفارشات" />
-              نرخ سکه
-            </NavLink>
-
             <button
               onClick={handleLogout}
               className="mt-auto text-white py-2 px-4 rounded flex justify-center hover:scale-110 cursor-pointer transition duration-150"

@@ -50,7 +50,7 @@ const Home = () => {
 
       <div className="container mx-auto px-4 py-2 max-w-5xl relative">
         {/* Header Section */}
-        <header className="flex max-sm:mt-20 mt-5 justify-between items-center mb-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
+        <header className="flex mt-5 justify-between items-center mb-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-500 p-2 rounded-lg">
               <img src={calendar} className="w-6 h-6 text-white" alt="Calendar" />

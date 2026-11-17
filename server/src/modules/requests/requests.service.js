@@ -284,7 +284,10 @@ export async function cancelRequest(user, id) {
 
 // ------------------------------------------------------------------ admins
 
-export async function listForAdmin({ status, side, userId, q, page, pageSize }) {
+// Requests made on one calendar day of the shop (Iran time).
+const ON_DAY = "(r.created_at AT TIME ZONE 'Asia/Tehran')::date = ?::date";
+
+export async function listForAdmin({ status, side, userId, q, date, page, pageSize }) {
   const where = [];
   const params = [];
   const add = (sql, value) => {
@@ -294,6 +297,7 @@ export async function listForAdmin({ status, side, userId, q, page, pageSize }) 
   if (status !== "all") add("r.status = ?", status);
   if (side) add("r.side = ?", side);
   if (userId) add("r.user_id = ?", userId);
+  if (date) add(ON_DAY, date);
   if (q) {
     // ي/ك (Arabic keyboards) and ی/ک (Persian) are treated as the same letters.
     add(
@@ -325,12 +329,16 @@ export async function listForAdmin({ status, side, userId, q, page, pageSize }) 
 }
 
 /** Counts for the inbox tabs and the sidebar badge. */
-export async function adminSummary() {
+export async function adminSummary({ date } = {}) {
   const { rows } = await query(
-    `SELECT status, count(*) AS n FROM trade_requests GROUP BY status`,
+    date
+      ? `SELECT status, count(*) AS n FROM trade_requests r WHERE ${ON_DAY.replace("?", "$1")} GROUP BY status`
+      : `SELECT status, count(*) AS n FROM trade_requests GROUP BY status`,
+    date ? [date] : [],
   );
   const counts = { pending: 0, accepted: 0, rejected: 0, cancelled: 0 };
   for (const r of rows) counts[r.status] = Number(r.n);
+  counts.all = counts.pending + counts.accepted + counts.rejected + counts.cancelled;
   return counts;
 }
 

@@ -6,6 +6,7 @@ import { validate } from "../../middleware/validate.js";
 import {
   acceptBody,
   adminListQuery,
+  adminSummaryQuery,
   createRequestBody,
   customerListQuery,
   idParams,
@@ -58,8 +59,8 @@ adminRequestsRouter.get("/", validate(adminListQuery, "query"), async (req, res)
   res.json(await service.listForAdmin(req.valid.query));
 });
 
-adminRequestsRouter.get("/summary", async (_req, res) => {
-  res.json({ data: await service.adminSummary() });
+adminRequestsRouter.get("/summary", validate(adminSummaryQuery, "query"), async (req, res) => {
+  res.json({ data: await service.adminSummary(req.valid.query) });
 });
 
 adminRequestsRouter.post(

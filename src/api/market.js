@@ -14,7 +14,7 @@ export const requestsApi = {
 
 export const adminApi = {
   requests: (query) => request("/admin/requests", { query }),
-  summary: () => request("/admin/requests/summary").then((r) => r.data),
+  summary: (query) => request("/admin/requests/summary", { query }).then((r) => r.data),
   accept: (id, body) =>
     request(`/admin/requests/${id}/accept`, { method: "POST", body }).then((r) => r.data),
   reject: (id, body) =>
