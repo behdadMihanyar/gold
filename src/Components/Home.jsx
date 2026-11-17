@@ -53,49 +53,35 @@ const Home = () => {
         <header className="flex max-sm:mt-20 mt-5 justify-between items-center mb-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-500 p-2 rounded-lg">
-              <img
-                src={calendar}
-                className="w-6 h-6 text-white"
-                alt="Calendar"
-              />
+              <img src={calendar} className="w-6 h-6 text-white" alt="Calendar" />
             </div>
             <h2 className="font-bold text-lg tracking-wide">{currentDate}</h2>
           </div>
 
           <button
             onClick={() => navigate("/addOrder")}
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 font-medium"
-          >
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 font-medium">
             <span>سفارش جدید</span>
             <img src={plus} className="w-5 h-5" alt="Add" />
           </button>
         </header>
 
         {/* Search-by-name modal */}
-        {showNameSearch && (
-          <NameSearch onClose={() => setShowNameSearch(false)} />
-        )}
+        {showNameSearch && <NameSearch onClose={() => setShowNameSearch(false)} />}
 
         {/* Main Content */}
-        <main
-          className={`transition-all duration-500 ${showNameSearch ? "blur-sm opacity-50 pointer-events-none" : "opacity-100"}`}
-        >
+        <main className={`transition-all duration-500 ${showNameSearch ? "blur-sm opacity-50 pointer-events-none" : "opacity-100"}`}>
           {/* Title Card */}
           <div className="text-center mb-10">
-            <h1 className="text-3xl p-3 md:text-4xl font-extrabold text-transparent bg-clip-text text-white drop-shadow-sm">
-              بهداد پنل مدیریت خرید و فروش سکه قصر
-            </h1>
-            <p className="text-slate-400 mt-2 text-sm">
-              داشبورد مدیریتی و آمار فروش
-            </p>
+            <h1 className="text-3xl p-3 md:text-4xl font-extrabold text-transparent bg-clip-text text-white drop-shadow-sm">پنل مدیریت خرید و فروش سکه قصر</h1>
+            <p className="text-slate-400 mt-2 text-sm">داشبورد مدیریتی و آمار فروش</p>
           </div>
 
           {/* Action Buttons Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <div
               onClick={() => setShowNameSearch(true)}
-              className="group relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-3xl shadow-xl cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/30"
-            >
+              className="group relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-3xl shadow-xl cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/30">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150"></div>
               <div className="relative z-10 flex flex-col items-center justify-center gap-4">
                 <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
@@ -107,8 +93,7 @@ const Home = () => {
 
             <div
               onClick={() => navigate("/search")}
-              className="group relative overflow-hidden bg-gradient-to-br from-cyan-600 to-teal-700 p-8 rounded-3xl shadow-xl cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/30"
-            >
+              className="group relative overflow-hidden bg-gradient-to-br from-cyan-600 to-teal-700 p-8 rounded-3xl shadow-xl cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/30">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150"></div>
               <div className="relative z-10 flex flex-col items-center justify-center gap-4">
                 <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
@@ -131,14 +116,9 @@ const Home = () => {
             ].map((item, index) => (
               <div
                 key={index}
-                className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:-translate-y-1 group"
-              >
-                <h3 className="text-slate-300 text-sm text-center font-medium mb-2 group-hover:text-indigo-300 transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-2xl font-bold text-white text-center tracking-tight">
-                  {item.val}
-                </p>
+                className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:-translate-y-1 group">
+                <h3 className="text-slate-300 text-sm text-center font-medium mb-2 group-hover:text-indigo-300 transition-colors">{item.title}</h3>
+                <p className="text-2xl font-bold text-white text-center tracking-tight">{item.val}</p>
               </div>
             ))}
           </div>

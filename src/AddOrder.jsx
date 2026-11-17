@@ -4,13 +4,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { ToastContainer } from "react-toastify";
 import CreatableSelect from "react-select/creatable";
-import {
-  buyHandlers,
-  emptyOrderForm,
-  handleFormChange,
-  handleFormDateChange,
-  sellHandlers,
-} from "./utils/orderHandlers.js";
+import { buyHandlers, emptyOrderForm, handleFormChange, handleFormDateChange, sellHandlers } from "./utils/orderHandlers.js";
 
 import { defaultNames } from "./Customers/Customers.js";
 
@@ -47,25 +41,16 @@ const AddOrder = () => {
       {/* ================= SELL FORM ================= */}
       <div className="w-full lg:w-1/2 flex justify-center">
         <form
-          onSubmit={(e) =>
-            sellHandlers.handleSubmit(e, formData, setFormData)
-          }
-          className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 col-span-full text-center">
-            ثبت سفارش فروش
-          </h2>
+          onSubmit={(e) => sellHandlers.handleSubmit(e, formData, setFormData)}
+          className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 col-span-full text-center">ثبت سفارش فروش</h2>
 
           {/* Name */}
           <div className="w-full">
             <CreatableSelect
               styles={customStyles}
               options={defaultNames}
-              value={
-                formData.name
-                  ? { value: formData.name, label: formData.name }
-                  : null
-              }
+              value={formData.name ? { value: formData.name, label: formData.name } : null}
               onChange={(selectedOption) =>
                 setFormData({
                   ...formData,
@@ -77,31 +62,15 @@ const AddOrder = () => {
             />
           </div>
 
-          <InputField
-            label="تعداد"
-            name="quantity"
-            inputMode="numeric"
-            value={formData.quantity}
-            onChange={(e) => handleFormChange(e, setFormData)}
-            required
-          />
+          <InputField label="تعداد" name="quantity" inputMode="numeric" value={formData.quantity} onChange={(e) => handleFormChange(e, setFormData)} required />
 
-          <InputField
-            label="نرخ"
-            name="price"
-            value={formData.price}
-            onChange={(e) => handleFormChange(e, setFormData)}
-            required
-          />
+          <InputField label="نرخ" name="price" value={formData.price} onChange={(e) => handleFormChange(e, setFormData)} required />
 
           <ReadOnlyField label="جمع کل" value={formData.total} />
 
           {/* Date */}
           <div className="w-full relative">
-            <div
-              onClick={() => setCalendarVisible(!calendarVisible)}
-              className="cursor-pointer py-2.5 border-b-2 border-gray-300 text-gray-400"
-            >
+            <div onClick={() => setCalendarVisible(!calendarVisible)} className="cursor-pointer py-2.5 border-b-2 border-gray-300 text-gray-400">
               {formData.date || "تاریخ"}
             </div>
 
@@ -111,20 +80,13 @@ const AddOrder = () => {
                   calendar={persian}
                   locale={persian_fa}
                   value={formData.date}
-                  onChange={(date) =>
-                    handleFormDateChange(date, setFormData, setCalendarVisible)
-                  }
+                  onChange={(date) => handleFormDateChange(date, setFormData, setCalendarVisible)}
                 />
               </div>
             )}
           </div>
 
-          <InputField
-            label="تحویل دهنده"
-            name="delivery"
-            value={formData.delivery}
-            onChange={(e) => handleFormChange(e, setFormData)}
-          />
+          <InputField label="تحویل دهنده" name="delivery" value={formData.delivery} onChange={(e) => handleFormChange(e, setFormData)} />
 
           <div className="col-span-full">
             <textarea
@@ -139,8 +101,7 @@ const AddOrder = () => {
 
           <button
             type="submit"
-            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
-          >
+            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300">
             ثبت سفارش
           </button>
         </form>
@@ -149,24 +110,15 @@ const AddOrder = () => {
       {/* ================= BUY FORM ================= */}
       <div className="w-full lg:w-1/2 flex justify-center">
         <form
-          onSubmit={(e) =>
-            buyHandlers.handleSubmit(e, formDataBuy, setFormDataBuy)
-          }
-          className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 col-span-full text-center">
-            ثبت سفارش خرید
-          </h2>
+          onSubmit={(e) => buyHandlers.handleSubmit(e, formDataBuy, setFormDataBuy)}
+          className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full max-w-xl lg:max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 col-span-full text-center">ثبت سفارش خرید</h2>
 
           <div className="w-full">
             <CreatableSelect
               styles={customStyles}
               options={defaultNames}
-              value={
-                formDataBuy.name
-                  ? { value: formDataBuy.name, label: formDataBuy.name }
-                  : null
-              }
+              value={formDataBuy.name ? { value: formDataBuy.name, label: formDataBuy.name } : null}
               onChange={(selectedOption) =>
                 setFormDataBuy({
                   ...formDataBuy,
@@ -187,21 +139,12 @@ const AddOrder = () => {
             required
           />
 
-          <InputField
-            label="نرخ"
-            name="price"
-            value={formDataBuy.price}
-            onChange={(e) => handleFormChange(e, setFormDataBuy)}
-            required
-          />
+          <InputField label="نرخ" name="price" value={formDataBuy.price} onChange={(e) => handleFormChange(e, setFormDataBuy)} required />
 
           <ReadOnlyField label="جمع کل" value={formDataBuy.total} />
 
           <div className="w-full relative">
-            <div
-              onClick={() => setCalendarVisibleBuy(!calendarVisibleBuy)}
-              className="cursor-pointer py-2.5 border-b-2 border-gray-300 text-gray-400"
-            >
+            <div onClick={() => setCalendarVisibleBuy(!calendarVisibleBuy)} className="cursor-pointer py-2.5 border-b-2 border-gray-300 text-gray-400">
               {formDataBuy.date || "تاریخ"}
             </div>
 
@@ -211,20 +154,13 @@ const AddOrder = () => {
                   calendar={persian}
                   locale={persian_fa}
                   value={formDataBuy.date}
-                  onChange={(date) =>
-                    handleFormDateChange(date, setFormDataBuy, setCalendarVisibleBuy)
-                  }
+                  onChange={(date) => handleFormDateChange(date, setFormDataBuy, setCalendarVisibleBuy)}
                 />
               </div>
             )}
           </div>
 
-          <InputField
-            label="تحویل دهنده"
-            name="delivery"
-            value={formDataBuy.delivery}
-            onChange={(e) => handleFormChange(e, setFormDataBuy)}
-          />
+          <InputField label="تحویل دهنده" name="delivery" value={formDataBuy.delivery} onChange={(e) => handleFormChange(e, setFormDataBuy)} />
 
           <div className="col-span-full">
             <textarea
@@ -239,8 +175,7 @@ const AddOrder = () => {
 
           <button
             type="submit"
-            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300"
-          >
+            className="col-span-full w-full py-3 hover:cursor-pointer bg-indigo-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition duration-300">
             ثبت سفارش
           </button>
         </form>

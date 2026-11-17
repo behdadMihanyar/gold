@@ -19,14 +19,20 @@ export default function Market() {
   }, [products]);
   const open = products.find((p) => p.id === openId);
   const stale = feed && !feed.live;
-  const last = products.map((p) => p.updatedAt).filter(Boolean).sort().at(-1);
+  const last = products
+    .map((p) => p.updatedAt)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
 
   return (
     <>
       <div className="gp-board-head">
         <div>
           <h1 className="gp-h1">سکه و طلا قصر</h1>
-          <p className="gp-sub" style={{ margin: 0 }}>یک محصول را برای خرید یا فروش انتخاب کنید.</p>
+          <p className="gp-sub" style={{ margin: 0 }}>
+            یک محصول را برای خرید یا فروش انتخاب کنید.
+          </p>
         </div>
         <span className={`gp-live${stale || failed ? " off" : ""}`}>
           <i />
@@ -41,14 +47,19 @@ export default function Market() {
       )}
       {failed && (
         <div className="gp-banner err" role="alert">
-          دریافت قیمت‌ها ناموفق بود. <button className="gp-link" onClick={reload}>تلاش دوباره</button>
+          دریافت قیمت‌ها ناموفق بود.{" "}
+          <button className="gp-link" onClick={reload}>
+            تلاش دوباره
+          </button>
         </div>
       )}
       {loaded && !failed && products.length === 0 && <div className="gp-empty">هنوز محصولی تعریف نشده است.</div>}
       {!loaded && (
         <div className="gp-group" aria-busy="true" aria-label="در حال دریافت قیمت‌ها">
           <div className="gp-card">
-            {[0, 1, 2, 3, 4].map((i) => <div key={i} className="gp-skel" />)}
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="gp-skel" />
+            ))}
           </div>
         </div>
       )}
@@ -57,22 +68,29 @@ export default function Market() {
         <section className="gp-group" key={g.name}>
           <h2 className="gp-group-title">{g.name}</h2>
           <div className="gp-card">
-            <div className="gp-cols"><span /><span>می‌خرید</span><span>می‌فروشید</span></div>
+            <div className="gp-cols">
+              <span />
+              <span>بخرید</span>
+              <span>بفروشید</span>
+            </div>
             {g.items.map((p) => {
               const none = p.buyPrice === null && p.sellPrice === null;
               return (
                 <button key={p.id} className="gp-row" disabled={none} onClick={() => setOpenId(p.id)}>
                   <span className="gp-pname">
                     <Coin code={p.code} />
-                    <span><b>{p.name}</b><small>قیمت هر {p.priceUnit}</small></span>
+                    <span>
+                      <b>{p.name}</b>
+                      <small>قیمت هر {p.priceUnit}</small>
+                    </span>
                   </span>
-                  <span data-l="می‌خرید" className={`gp-price num ${p.buyPrice === null ? "none" : "buy"} ${flash[p.id] ?? ""}`}>
+                  <span data-l="بخرید" className={`gp-price num ${p.buyPrice === null ? "none" : "buy"} ${flash[p.id] ?? ""}`}>
                     {fmtRial(p.buyPrice)}
-                    {p.buyPrice !== null && <small>ریال</small>}
+                    {p.buyPrice !== null && <small>تومان</small>}
                   </span>
-                  <span data-l="می‌فروشید" className={`gp-price num ${p.sellPrice === null ? "none" : "sell"} ${flash[p.id] ?? ""}`}>
+                  <span data-l="بفروشید" className={`gp-price num ${p.sellPrice === null ? "none" : "sell"} ${flash[p.id] ?? ""}`}>
                     {fmtRial(p.sellPrice)}
-                    {p.sellPrice !== null && <small>ریال</small>}
+                    {p.sellPrice !== null && <small>تومان</small>}
                   </span>
                 </button>
               );

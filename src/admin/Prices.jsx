@@ -16,8 +16,12 @@ function AdjustInput({ value, onChange, label }) {
   return (
     <div className="gp-adjust" role="group" aria-label={label}>
       <div className="gp-sign">
-        <button type="button" className={!negative ? "on plus" : ""} aria-pressed={!negative} onClick={() => onChange(amount)}>+</button>
-        <button type="button" className={negative ? "on minus" : ""} aria-pressed={negative} onClick={() => onChange(-amount)}>−</button>
+        <button type="button" className={!negative ? "on plus" : ""} aria-pressed={!negative} onClick={() => onChange(amount)}>
+          +
+        </button>
+        <button type="button" className={negative ? "on minus" : ""} aria-pressed={negative} onClick={() => onChange(-amount)}>
+          −
+        </button>
       </div>
       <input
         className="num"
@@ -70,7 +74,10 @@ function Row({ p, unmapped, onSaved }) {
     const shown = effective(base[key], adj[key]);
     return (
       <div className={`gp-pcol ${key}`}>
-        <div className="gp-pcol-title">{title}<small>{hint}</small></div>
+        <div className="gp-pcol-title">
+          {title}
+          <small>{hint}</small>
+        </div>
         <div className="gp-pline">
           <span>{linked ? "قیمت هنزایی" : "قیمت پایه"}</span>
           {linked ? (
@@ -81,7 +88,7 @@ function Row({ p, unmapped, onSaved }) {
               inputMode="numeric"
               dir="ltr"
               value={base[key] ? formatPrice(base[key]) : ""}
-              placeholder="ندارید"
+              placeholder="موجود نیست"
               onChange={(e) => setBase({ ...base, [key]: parseAmount(e.target.value) || null })}
             />
           )}
@@ -92,7 +99,7 @@ function Row({ p, unmapped, onSaved }) {
         </div>
         <div className="gp-pline shown">
           <span>نمایش به مشتری</span>
-          <b className="num">{shown === null ? "ندارید" : `${fmtRial(shown)} ریال`}</b>
+          <b className="num">{shown === null ? "موجود نیست" : `${fmtRial(shown)} ریال`}</b>
         </div>
       </div>
     );
@@ -119,17 +126,32 @@ function Row({ p, unmapped, onSaved }) {
       </div>
 
       <div className="gp-actions">
-        <button className="gp-btn buy" disabled={busy || !(adjDirty || baseDirty)} onClick={saveAll}>ذخیره</button>
+        <button className="gp-btn buy" disabled={busy || !(adjDirty || baseDirty)} onClick={saveAll}>
+          ذخیره
+        </button>
         {(adjDirty || baseDirty) && (
-          <button className="gp-btn ghost" disabled={busy} onClick={() => { setAdj({ buy: p.buyAdjust, sell: p.sellAdjust }); setBase({ buy: p.baseBuyPrice, sell: p.baseSellPrice }); }}>
+          <button
+            className="gp-btn ghost"
+            disabled={busy}
+            onClick={() => {
+              setAdj({ buy: p.buyAdjust, sell: p.sellAdjust });
+              setBase({ buy: p.baseBuyPrice, sell: p.baseSellPrice });
+            }}>
             انصراف
           </button>
         )}
-        <button className="gp-btn ghost" disabled={busy} onClick={() => save({ isActive: !p.isActive }, p.isActive ? "از مشتریان پنهان شد." : "به مشتریان نمایش داده می‌شود.")}>
+        <button
+          className="gp-btn ghost"
+          disabled={busy}
+          onClick={() => save({ isActive: !p.isActive }, p.isActive ? "از مشتریان پنهان شد." : "به مشتریان نمایش داده می‌شود.")}>
           {p.isActive ? "پنهان کردن از مشتریان" : "نمایش به مشتریان"}
         </button>
         <span className="gp-when">{p.updatedAt ? `آخرین تغییر قیمت ${clockTime(p.updatedAt)}` : "هنوز قیمتی ندارد"}</span>
-        {msg && <span className="gp-sub" style={{ margin: 0 }} role="status">{msg}</span>}
+        {msg && (
+          <span className="gp-sub" style={{ margin: 0 }} role="status">
+            {msg}
+          </span>
+        )}
       </div>
 
       <details className="gp-link-src">
@@ -137,8 +159,7 @@ function Row({ p, unmapped, onSaved }) {
         <select
           value={p.sourceId ?? ""}
           disabled={busy}
-          onChange={(e) => save({ sourceId: e.target.value ? Number(e.target.value) : null }, "اتصال ذخیره شد.")}
-        >
+          onChange={(e) => save({ sourceId: e.target.value ? Number(e.target.value) : null }, "اتصال ذخیره شد.")}>
           <option value="">بدون اتصال (قیمت دستی)</option>
           {linked && <option value={p.sourceId}>شناسهٔ {toPersianDigits(p.sourceId)} (فعلی)</option>}
           {unmapped.map((u) => (
@@ -154,8 +175,17 @@ function Row({ p, unmapped, onSaved }) {
 
 export default function Prices() {
   const [board, setBoard] = useState({ products: [], unmappedFeedItems: [], feed: null });
-  const load = useCallback(() => marketApi.board().then(setBoard).catch(() => {}), []);
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(
+    () =>
+      marketApi
+        .board()
+        .then(setBoard)
+        .catch(() => {}),
+    [],
+  );
+  useEffect(() => {
+    load();
+  }, [load]);
   useSocketEvent("prices:changed", load);
   const f = board.feed;
   return (
@@ -164,15 +194,18 @@ export default function Prices() {
       <p className="gp-sub">
         {f?.mode === "feed"
           ? `کالکتور متصل است؛ آخرین پیام ${clockTime(f.lastHeartbeatAt)}. ${f.live ? "قیمت‌ها زنده‌اند." : "ارتباط قطع است و مشتریان نمی‌توانند درخواست ثبت کنند."}`
-          : "کالکتوری متصل نشده است؛ قیمت‌ها را دستی وارد کنید."}
-        {" "}با «افزایش / کاهش» می‌توانید مبلغی به قیمت هنزایی اضافه یا از آن کم کنید؛ مشتری قیمت نهایی را می‌بیند و با همان معامله می‌کند.
+          : "کالکتوری متصل نشده است؛ قیمت‌ها را دستی وارد کنید."}{" "}
+        با «افزایش / کاهش» می‌توانید مبلغی به قیمت هنزایی اضافه یا از آن کم کنید؛ مشتری قیمت نهایی را می‌بیند و با همان معامله می‌کند.
       </p>
       {board.unmappedFeedItems.length > 0 && (
         <div className="gp-banner warn">
-          {toPersianDigits(board.unmappedFeedItems.length)} محصول هنزایی به‌طور خودکار به محصولی وصل نشد (نام‌ها یکسان نبود)؛ در محصول مربوط، بخش «اتصال به هنزایی» را باز کنید و آن را انتخاب کنید.
+          {toPersianDigits(board.unmappedFeedItems.length)} محصول هنزایی به‌طور خودکار به محصولی وصل نشد (نام‌ها یکسان نبود)؛ در محصول مربوط، بخش «اتصال به
+          هنزایی» را باز کنید و آن را انتخاب کنید.
         </div>
       )}
-      {board.products.map((p) => <Row key={p.id} p={p} unmapped={board.unmappedFeedItems} onSaved={load} />)}
+      {board.products.map((p) => (
+        <Row key={p.id} p={p} unmapped={board.unmappedFeedItems} onSaved={load} />
+      ))}
     </div>
   );
 }
